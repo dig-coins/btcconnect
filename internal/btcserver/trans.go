@@ -32,7 +32,7 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 	changeAddress string, estimateSmartFee int64) (changeAmount int64, err error) {
 	var totalAmount, outputAmount int64
 
-	var uncompleted *btctx.Uncompleted
+	uncompleted := btctx.NewUncompleted()
 
 	var oInputs []btctx.Input
 
@@ -57,11 +57,7 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 			continue
 		}
 
-		if uncompleted == nil {
-			uncompleted = btctx.NewUncompleted()
-		}
-
-		uncompleted.MultiSignInfos[idx] = btctx.MultiSignInfo{}
+		uncompleted.MultiSignInputInfos[idx] = btctx.MultiSignInfo{}
 
 		msPrivateKeys[idx] = make([]string, 0, 2)
 
@@ -96,32 +92,35 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 		Amount:  totalAmount - outputAmount,
 	})
 
-	signHelper := btctx.NewFixSignHelper("cRGtUsda56iwyg7svGUJfcMP3bFLFvyhWpdzoYcKwfuZZeqQoij7")
-
 	var tx *wire.MsgTx
 
-	if uncompleted == nil {
+	if len(uncompleted.MultiSignInputInfos) == 0 {
 		tx, err = btctx.GenSignedTx(&btctx.UnsignedTx{
 			Inputs:  oInputs,
 			Outputs: oOutputs,
-		}, s.netParams, signHelper)
+		}, s.netParams)
 	} else {
 		tx, err = btctx.GenMultiSignedTx(&btctx.UnsignedTx{
 			Inputs:  oInputs,
 			Outputs: oOutputs,
 		}, uncompleted, s.netParams)
-		if err != nil {
-			return
-		}
+	}
 
-		btInputs := make([]bitcoin.Input, 0, len(inputs))
-		for _, input := range inputs {
-			btInputs = append(btInputs, bitcoin.GenInput(input.TxID, input.VOut,
-				"cRGtUsda56iwyg7svGUJfcMP3bFLFvyhWpdzoYcKwfuZZeqQoij7",
-				input.RedeemScript, input.Address, input.Amount))
-		}
+	if err != nil {
+		return
+	}
 
-		err = btctx.UpdateMultiSignedTx(tx, btInputs, msPrivateKeys, privateKeys, s.netParams)
+	btInputs := make([]bitcoin.Input, 0, len(inputs))
+	for _, input := range inputs {
+		btInputs = append(btInputs, bitcoin.GenInput(input.TxID, input.VOut,
+			"cRGtUsda56iwyg7svGUJfcMP3bFLFvyhWpdzoYcKwfuZZeqQoij7",
+			input.RedeemScript, input.Address, input.Amount))
+	}
+
+	if len(uncompleted.MultiSignInputInfos) == 0 {
+		err = bitcoin.SignBuildTx(tx, btInputs, privateKeys, s.netParams)
+	} else {
+		err = bitcoin.MultiSignBuildTx(tx, btInputs, msPrivateKeys, privateKeys, s.netParams)
 	}
 
 	if err != nil {
@@ -362,8 +361,7 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 			}
 		}
 
-		amount := int64(unspent.Amount * helper.SatoshiPerBitcoin)
-
+		amount := helper.UnitBTC2SatoshiBTC(unspent.Amount)
 		inputs = append(inputs, TransInput{
 			TxID:    unspent.TxID,
 			VOut:    unspent.VOut,

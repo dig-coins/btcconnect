@@ -8,10 +8,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
+type Item struct {
 	Dest   string   `yaml:"dest"`
 	SecKey string   `yaml:"secKey"`
 	Seeds  []string `yaml:"seeds"`
+}
+
+type Config struct {
+	Items []Item `yaml:"items"`
 }
 
 func main() {
@@ -27,17 +31,19 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if len(config.Seeds) == 0 {
-		log.Panicln("empty seeds")
-	}
+	for _, item := range config.Items {
+		if len(item.Seeds) == 0 {
+			log.Panicln("empty seeds")
+		}
 
-	d, err = yaml.Marshal(config.Seeds)
-	if err != nil {
-		log.Panicln(err)
-	}
+		d, err = yaml.Marshal(item.Seeds)
+		if err != nil {
+			log.Panicln(err)
+		}
 
-	err = edfile.WriteSecFile(config.Dest, config.SecKey, d)
-	if err != nil {
-		log.Panicln(err)
+		err = edfile.WriteSecFile(item.Dest, item.SecKey, d)
+		if err != nil {
+			log.Panicln(err)
+		}
 	}
 }

@@ -12,16 +12,26 @@ type MultiSignInfo struct {
 }
 
 type Uncompleted struct {
-	MultiSignInfos map[int]MultiSignInfo
+	MultiSignInputInfos map[int]MultiSignInfo
+	SignInputFlag       map[int]bool
 }
 
 func NewUncompleted() *Uncompleted {
-	return &Uncompleted{MultiSignInfos: make(map[int]MultiSignInfo)}
+	return &Uncompleted{
+		MultiSignInputInfos: make(map[int]MultiSignInfo),
+		SignInputFlag:       make(map[int]bool),
+	}
 }
 
 func (c *Uncompleted) Completed() bool {
-	for _, msi := range c.MultiSignInfos {
+	for _, msi := range c.MultiSignInputInfos {
 		if msi.SignedNum < msi.MinSignNum {
+			return false
+		}
+	}
+
+	for _, b := range c.SignInputFlag {
+		if !b {
 			return false
 		}
 	}

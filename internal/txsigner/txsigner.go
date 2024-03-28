@@ -61,14 +61,13 @@ func (signer *TxSigner) init(seedFileName, seedSecKey string, coinType uint32) (
 	return
 }
 
-func (signer *TxSigner) GetSignedTxHex(unsignedTxHex string) (r string, rIsMultiSignMidTx bool, err error) {
+func (signer *TxSigner) SignTx(unsignedTxHex string) (r string, rAllSigned bool, err error) {
 	unsignedTx, err := btctx.UnmarshalUnsignedTx(unsignedTxHex)
 	if err != nil {
 		return
 	}
 
-	var uncompleted *btctx.Uncompleted
-
+	uncompleted := btctx.NewUncompleted()
 	msPrivateKeys := make(map[int][]string)
 	privateKeys := make(map[int]string)
 
@@ -82,16 +81,14 @@ func (signer *TxSigner) GetSignedTxHex(unsignedTxHex string) (r string, rIsMulti
 
 		i, ok := signer.multiSignAddressInfo[input.Address]
 		if !ok {
-			continue
-		}
+			uncompleted.SignInputFlag[idx] = privateKeys[idx] != ""
 
-		if uncompleted == nil {
-			uncompleted = btctx.NewUncompleted()
+			continue
 		}
 
 		msPrivateKeys[idx] = make([]string, 0, 2)
 
-		mgInfo := uncompleted.MultiSignInfos[idx]
+		mgInfo := uncompleted.MultiSignInputInfos[idx]
 		mgInfo.MinSignNum = i.MinSignNum
 
 		for _, key := range i.PublicKeys {
@@ -102,30 +99,35 @@ func (signer *TxSigner) GetSignedTxHex(unsignedTxHex string) (r string, rIsMulti
 				msPrivateKeys[idx] = append(msPrivateKeys[idx], privateKey)
 				mgInfo.SignedNum++
 			} else {
-				mgInfo.PublicKeys = append(uncompleted.MultiSignInfos[idx].PublicKeys, key)
+				mgInfo.PublicKeys = append(uncompleted.MultiSignInputInfos[idx].PublicKeys, key)
 			}
 		}
 
-		uncompleted.MultiSignInfos[idx] = mgInfo
+		uncompleted.MultiSignInputInfos[idx] = mgInfo
 	}
 
 	var tx *wire.MsgTx
 
-	if uncompleted == nil {
-		tx, err = btctx.GenSignedTx(unsignedTx, signer.netParams, signer)
+	if len(uncompleted.MultiSignInputInfos) == 0 {
+		tx, err = btctx.GenSignedTx(unsignedTx, signer.netParams)
 	} else {
 		tx, err = btctx.GenMultiSignedTx(unsignedTx, uncompleted, signer.netParams)
-		if err != nil {
-			return
-		}
+	}
 
-		inputs := make([]bitcoin.Input, 0, len(unsignedTx.Inputs))
-		for idx, input := range unsignedTx.Inputs {
-			inputs = append(inputs, bitcoin.GenInput(input.TxID, input.VOut, privateKeys[idx],
-				input.RedeemScript, input.Address, input.Amount))
-		}
+	if err != nil {
+		return
+	}
 
-		err = btctx.UpdateMultiSignedTx(tx, inputs, msPrivateKeys, privateKeys, signer.netParams)
+	inputs := make([]bitcoin.Input, 0, len(unsignedTx.Inputs))
+	for _, input := range unsignedTx.Inputs {
+		inputs = append(inputs, bitcoin.GenInput(input.TxID, input.VOut, "",
+			input.RedeemScript, input.Address, input.Amount))
+	}
+
+	if len(uncompleted.MultiSignInputInfos) == 0 {
+		err = bitcoin.SignBuildTx(tx, inputs, privateKeys, signer.netParams)
+	} else {
+		err = bitcoin.MultiSignBuildTx(tx, inputs, msPrivateKeys, privateKeys, signer.netParams)
 	}
 
 	if err != nil {
@@ -134,11 +136,16 @@ func (signer *TxSigner) GetSignedTxHex(unsignedTxHex string) (r string, rIsMulti
 
 	if uncompleted == nil || uncompleted.Completed() {
 		r, err = bitcoin.GetTxHex(tx)
+		if err != nil {
+			return
+		}
+
+		rAllSigned = true
 
 		return
 	}
 
-	r, err = MarshalMultiSignMidTx(&MultiSignMidTx{
+	r, err = MarshalMiddleSignMidTx(&MiddleSignMidTx{
 		unsignedTx:  unsignedTx,
 		uncompleted: uncompleted,
 		tx:          tx,
@@ -147,14 +154,12 @@ func (signer *TxSigner) GetSignedTxHex(unsignedTxHex string) (r string, rIsMulti
 		return
 	}
 
-	rIsMultiSignMidTx = true
-
 	return
 }
 
-func (signer *TxSigner) UpdateMultiSignedTxHex(msTxHex string, uncompleted *btctx.Uncompleted) (
-	r string, rIsMultiSignMidTx bool, err error) {
-	msTx, err := UnmarshalMultiSignMidTx(msTxHex)
+func (signer *TxSigner) UpdateMiddleSignedTxHex(msTxHex string) (
+	r string, rAllSigned bool, err error) {
+	msTx, err := UnmarshalMiddleSignMidTx(msTxHex)
 	if err != nil {
 		return
 	}
@@ -165,21 +170,29 @@ func (signer *TxSigner) UpdateMultiSignedTxHex(msTxHex string, uncompleted *btct
 	privateKeys := make(map[int]string)
 
 	for idx, input := range msTx.unsignedTx.Inputs {
+		if msTx.uncompleted.SignInputFlag[idx] {
+			continue
+		}
+
 		var iPrivateKey string
 
 		iPrivateKey, err = signer.keyPool.GetPrivateKeyByAddress(input.Address)
 		if err == nil {
 			privateKeys[idx] = iPrivateKey
+
+			updateCount++
 		}
 
 		i, ok := signer.multiSignAddressInfo[input.Address]
 		if !ok {
+			msTx.uncompleted.SignInputFlag[idx] = true
+
 			continue
 		}
 
 		msPrivateKeys[idx] = make([]string, 0, 2)
 
-		mgInfo := uncompleted.MultiSignInfos[idx]
+		mgInfo := msTx.uncompleted.MultiSignInputInfos[idx]
 
 		for _, key := range i.PublicKeys {
 			if !slices.Contains(mgInfo.PublicKeys, key) {
@@ -199,7 +212,7 @@ func (signer *TxSigner) UpdateMultiSignedTxHex(msTxHex string, uncompleted *btct
 			}
 		}
 
-		uncompleted.MultiSignInfos[idx] = mgInfo
+		msTx.uncompleted.MultiSignInputInfos[idx] = mgInfo
 	}
 
 	if updateCount <= 0 {
@@ -214,7 +227,12 @@ func (signer *TxSigner) UpdateMultiSignedTxHex(msTxHex string, uncompleted *btct
 			input.RedeemScript, input.Address, input.Amount))
 	}
 
-	err = btctx.UpdateMultiSignedTx(msTx.tx, inputs, msPrivateKeys, privateKeys, signer.netParams)
+	if len(msTx.uncompleted.MultiSignInputInfos) == 0 {
+		err = bitcoin.SignBuildTx(msTx.tx, inputs, privateKeys, signer.netParams)
+	} else {
+		err = bitcoin.MultiSignBuildTx(msTx.tx, inputs, msPrivateKeys, privateKeys, signer.netParams)
+	}
+
 	if err != nil {
 		return
 	}
@@ -225,15 +243,12 @@ func (signer *TxSigner) UpdateMultiSignedTxHex(msTxHex string, uncompleted *btct
 			return
 		}
 
+		rAllSigned = true
+
 		return
 	}
 
-	r, err = MarshalMultiSignMidTx(msTx)
-	if err != nil {
-		return
-	}
-
-	rIsMultiSignMidTx = true
+	r, err = MarshalMiddleSignMidTx(msTx)
 
 	return
 }

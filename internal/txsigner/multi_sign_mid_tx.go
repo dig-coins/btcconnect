@@ -10,7 +10,7 @@ import (
 	"github.com/sgostarter/i/commerr"
 )
 
-type MultiSignMidTx struct {
+type MiddleSignMidTx struct {
 	UnsignedTxHex  string
 	UncompletedHex string
 	TxHex          string
@@ -20,7 +20,7 @@ type MultiSignMidTx struct {
 	tx          *wire.MsgTx
 }
 
-func MarshalMultiSignMidTx(msTx *MultiSignMidTx) (hexD string, err error) {
+func MarshalMiddleSignMidTx(msTx *MiddleSignMidTx) (hexD string, err error) {
 	if msTx == nil || msTx.unsignedTx == nil || msTx.uncompleted == nil || msTx.tx == nil {
 		err = commerr.ErrInvalidArgument
 
@@ -52,13 +52,13 @@ func MarshalMultiSignMidTx(msTx *MultiSignMidTx) (hexD string, err error) {
 	return
 }
 
-func UnmarshalMultiSignMidTx(hexD string) (msTx *MultiSignMidTx, err error) {
+func UnmarshalMiddleSignMidTx(hexD string) (msTx *MiddleSignMidTx, err error) {
 	d, err := hex.DecodeString(hexD)
 	if err != nil {
 		return
 	}
 
-	msTx = &MultiSignMidTx{}
+	msTx = &MiddleSignMidTx{}
 
 	err = json.Unmarshal(d, msTx)
 	if err != nil {

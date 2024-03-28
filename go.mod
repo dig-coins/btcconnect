@@ -11,6 +11,7 @@ require (
 	github.com/sgostarter/i v0.1.16
 	github.com/sgostarter/libconfig v0.0.2
 	github.com/sgostarter/libeasygo v0.1.70
+	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cast v1.6.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
@@ -50,10 +51,10 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-replace github.com/okx/go-wallet-sdk/coins/bitcoin => github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.0-20240326121340-9543ab2b2240
+//replace github.com/okx/go-wallet-sdk/coins/bitcoin => github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.0-20240326121340-9543ab2b2240
 
 //replace github.com/sgostarter/libeasygo => ../../work_sgostarter/libeasygo
 
 //replace github.com/sgostarter/libconfig => ../../work_sgostarter/libconfig
 
-//replace github.com/okx/go-wallet-sdk/coins/bitcoin => ../../work_dig-coins/go-wallet-sdk/coins/bitcoin
+replace github.com/okx/go-wallet-sdk/coins/bitcoin => ../../work_dig-coins/go-wallet-sdk/coins/bitcoin

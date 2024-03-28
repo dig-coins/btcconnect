@@ -46,7 +46,7 @@ func (s *BTCServer) estimateSmartFee(confirmationTarget int) (fee int64, err err
 		return
 	}
 
-	fee = int64(cast.ToFloat64(r["feerate"]) * helper.SatoshiPerBitcoin)
+	fee = helper.UnitBTC2SatoshiBTC(cast.ToFloat64(r["feerate"]))
 	if fee == 0 {
 		err = commerr.ErrInternal
 

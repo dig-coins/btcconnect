@@ -61,8 +61,6 @@ github.com/decred/dcrd/crypto/blake256 v1.0.0/go.mod h1:sQl2p6Y26YV+ZOcSTP6thNdn
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 h1:YLtO71vCjJRCBcrPMtQ9nqBsqpA1m5sE92cU+pd5Mcc=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1/go.mod h1:hyedUtir6IdtD/7lIxGeCxkaw7y45JueMRL4DIyJDKs=
 github.com/decred/dcrd/lru v1.0.0/go.mod h1:mxKOwFd7lFjN2GZYsiz/ecgqR6kkYAl+0pz0tEMk218=
-github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.0-20240326121340-9543ab2b2240 h1:/qsh0UOvvBrfI626QV0t2d7cbquy+D61ryW+aOIS22k=
-github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.0-20240326121340-9543ab2b2240/go.mod h1:P/HXvAJttNuDewGNBc5LwM7WYG+S8sYvZX6ccr8i6gk=
 github.com/dig-coins/hd-wallet v0.0.0-20240312121459-3253c499232c h1:G6FgNqJir9ZfdUpCC+cpG2bzEcTnmJW3DBD/Gnyzg0k=
 github.com/dig-coins/hd-wallet v0.0.0-20240312121459-3253c499232c/go.mod h1:Os5UuZsXdNqLtNYZB2+6tg3+Y3uLcTMAv257MIOch/w=
 github.com/ethereum/c-kzg-4844 v0.3.1 h1:sR65+68+WdnMKxseNWxSJuAv2tsUrihTpVBTfM/U5Zg=
@@ -152,6 +150,8 @@ github.com/sgostarter/libeasygo v0.1.70/go.mod h1:19vKiTFvgej56eCbS6btXMHn3DTFtZ
 github.com/shengdoushi/base58 v1.0.0 h1:tGe4o6TmdXFJWoI31VoSWvuaKxf0Px3gqa3sUWhAxBs=
 github.com/shengdoushi/base58 v1.0.0/go.mod h1:m5uIILfzcKMw6238iWAhP4l3s5+uXyF3+bJKUNhAL9I=
 github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible h1:Bn1aCHHRnjv4Bl16T8rcaFjYSrGrIZvpiGO6P3Q4GpU=
+github.com/shopspring/decimal v1.3.1 h1:2Usl1nmF/WZucqkFZhnfFYxxxu8LG21F6nPQBE5gKV8=
+github.com/shopspring/decimal v1.3.1/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/spf13/cast v1.6.0 h1:GEiTHELF+vaR5dhz3VqZfFSzZjYbgeKDpBxQVS4GYJ0=
 github.com/spf13/cast v1.6.0/go.mod h1:ancEpBxwJDODSW/UG4rDrAqiKolqNNh2DX3mk86cAdo=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
