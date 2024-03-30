@@ -317,7 +317,7 @@ func (s *BTCServer) calcChange4Trans(inputs []TransInput, outputs []TransOutput,
 
 	newOutput = append(newOutput, TransOutput{
 		Address: changeAddress,
-		Amount:  changeAmount - 5,
+		Amount:  changeAmount - 1,
 	})
 
 	return

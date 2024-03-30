@@ -1,12 +1,14 @@
 package btcserver
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/dig-coins/btcconnect/internal/redistorage"
 	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/dig-coins/btcconnect/internal/utl"
+	"github.com/okx/go-wallet-sdk/coins/bitcoin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +47,7 @@ func utNewBTCServer(t *testing.T) *BTCServer {
 func TestBroadcastTx(t *testing.T) {
 	s := utNewBTCServer(t)
 
-	txID, err := s.SendRawTransaction("01000000000103dc2dd538755d0f5c4326cab47e02ea184f3628ffde112235f34be7e91b3e382700000000fd670100483045022100fddc32bb043c9753a8d72e572e681fa189055da9617743049da31154a5537087022076f8b2e76256a68f451242a3f680acc40dfbf50bf99cbfdb0f12148c8479685b0147304402200d8297611c58b6a322272224d504a17eb50c3e24cc52fb53264b199d681259270220566b3ab6677a62a09fabf3c0abf5378a203a794f513ab74273c51ee69f33eb5f014730440220162a745e8345cfa8ac095ae006f8c0bb4ef9631780f80bf561a1504474c645ad022077881eec386e9f909217d29cc59bb4f3d0678272d24856e8981a289910f27b93014c8b532102f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e21028e7bbb364b64687db98ad39674e70c194aa01ef3da3148791536f25ab8861c0221037cb184baf184ec6d3f24c927c6243dbb122ae7f9353425f84f3dfcd95fdcd0f921037f9e1716a16efb9cf977a628942a5ee193aa29d31d99a6ddbb80d1d7dd69b5da54aeffffffff625bd1211b518d6db681280f0a87be58705a6c514858802a9df8c97708a28a1201000000fd670100473044022072ff935343767dd1203ac91ec6d6c6a2d375c540bf0e3e39ef3ee6f95f2c97d802202b2611d2729160ceb62cac94e65dc9c81c26670dd593eeb441de54c1b97e4e7d01473044022043468bd2613f7059c7419329b5741ce88dd4d1a6475e61ef62f522b49627576c022005414d1b8f9e343f7ec35271722800c09e4d2a04513cef22c79ce491fc2c9e3101483045022100d9fdfd37bb95447aa09e0a42f46cf095b8e526ac63d5d6f5ed6709aedf3529fe022027c5d6c8a04a827b6197c0ab8fbb882df8bf86ce0fd35e133133f80cfc6b3360014c8b532102f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e21028e7bbb364b64687db98ad39674e70c194aa01ef3da3148791536f25ab8861c0221037cb184baf184ec6d3f24c927c6243dbb122ae7f9353425f84f3dfcd95fdcd0f921037f9e1716a16efb9cf977a628942a5ee193aa29d31d99a6ddbb80d1d7dd69b5da54aefffffffff8295e64ab521e1a242861796a710d1c0886105441dec1ad2e79605b1c7c8aa60000000000ffffffff0173340000000000001976a914b34f7caffd40224fa0e717020870aed0c04b3a9b88ac000002483045022100842d119544616925c44d83788b523137b8dff41c86c8e12ec742e3cba5bf14d80220124b0499a55080636f992771a181a8eca0a74273598247f5dfb9248a7ba59e51012102f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e00000000")
+	txID, err := s.SendRawTransaction("0100000001699266e5d7e176129f8b333385769d82cb1a05568b3dd79b297f179606b964f000000000fd680100483045022100b82732cd52474520dfa352057866d6ffffe330be4a52a22bb61995a7d10645b502200edf59b715fb1768d3a5bb7fd560a225165dab7eae2fcb9277e142229ead46d801483045022100d1337fd16c222fc3a06db9a94f51e2a9ef142e2b12ebaf3e0826c46e428af92c0220470137999b0c0ada536bab6115b76831bf0d9efa888baefe33a5d3235c5194be0147304402206fad35910b1b572481e4ea59a9f8cfbe263df7a384b8ff3d44985526704da76a02205828f5547b251205626bf1ae27688625d2137952153f29c27056e576cf68e444014c8b532102f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e21028e7bbb364b64687db98ad39674e70c194aa01ef3da3148791536f25ab8861c0221037cb184baf184ec6d3f24c927c6243dbb122ae7f9353425f84f3dfcd95fdcd0f921037f9e1716a16efb9cf977a628942a5ee193aa29d31d99a6ddbb80d1d7dd69b5da54aeffffffff02e8030000000000001976a914b34f7caffd40224fa0e717020870aed0c04b3a9b88acf10500000000000017a914828554491599c7989112bdc632b14a64c1b5ed4f8700000000")
 	assert.Nil(t, err)
 	t.Log(txID)
 }
@@ -54,7 +56,7 @@ func TestTrans2(t *testing.T) {
 	s := utNewBTCServer(t)
 
 	wpi, err := s.GenUnsignedTx4TransToOne("hoho2", "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
-		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 10000, 2, "")
+		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 3000, 2, "")
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
@@ -211,4 +213,194 @@ func TestTransFromMultiSigAndWitnessAddress(t *testing.T) {
 	}, 2, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i")
 	assert.Nil(t, err)
 	t.Log(wpi)
+}
+
+func TestTransFromMultiSigAndWitnessAddress2(t *testing.T) {
+	s := utNewBTCServer(t)
+
+	wpi, err := s.GenUnsignedTx4TransTo("hoho2", []string{
+		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
+	}, []TransOutput{
+		{
+			Address: "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
+			Amount:  1000,
+		},
+	}, 2, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i")
+	assert.Nil(t, err)
+	t.Log(wpi)
+}
+
+func TestStatisticsFee(t *testing.T) {
+	s := utNewBTCServer(t)
+
+	fnPrintFee := func(label string, allAmount int64, outputs []TransOutput) {
+		var outAmount int64
+
+		for _, output := range outputs {
+			outAmount += output.Amount
+		}
+
+		t.Logf("%s, fee is %d\n", label, allAmount-outAmount)
+	}
+
+	redeemScript, err := bitcoin.GetRedeemScript([]string{
+		"02f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e",
+		"028e7bbb364b64687db98ad39674e70c194aa01ef3da3148791536f25ab8861c02",
+		"037cb184baf184ec6d3f24c927c6243dbb122ae7f9353425f84f3dfcd95fdcd0f9",
+		"037f9e1716a16efb9cf977a628942a5ee193aa29d31d99a6ddbb80d1d7dd69b5da",
+	}, 3, &chaincfg.TestNet3Params)
+	assert.Nil(t, err)
+	redeemScriptHex := hex.EncodeToString(redeemScript)
+	t.Log(redeemScriptHex)
+
+	//
+	//
+	//
+
+	outputs, err := s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("L", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("L", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("L", 100000, outputs)
+
+	//
+	//
+	//
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("WN", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("WN", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("WN", 100000, outputs)
+
+	//
+	//
+	//
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("W", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("W", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:    "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:    0,
+			Address: "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4",
+			Amount:  100000,
+		},
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("W", 100000, outputs)
+
+	//
+	//
+	//
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:         "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:         0,
+			Address:      "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
+			Amount:       100000,
+			RedeemScript: redeemScriptHex,
+		},
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("MS", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:         "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:         0,
+			Address:      "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
+			Amount:       100000,
+			RedeemScript: redeemScriptHex,
+		},
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("MS", 100000, outputs)
+
+	outputs, err = s.calcChange4Trans([]TransInput{
+		{
+			TxID:         "63a7a7344e530552cd3937cf51f4323fb96a206e88208a0cca60205036738307",
+			VOut:         0,
+			Address:      "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
+			Amount:       100000,
+			RedeemScript: redeemScriptHex,
+		},
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	assert.Nil(t, err)
+	fnPrintFee("MS", 100000, outputs)
+
 }
