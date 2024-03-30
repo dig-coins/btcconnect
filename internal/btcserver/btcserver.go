@@ -2,11 +2,11 @@ package btcserver
 
 import (
 	"context"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/dig-coins/btcconnect/internal/share"
 	"sync"
 
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/dig-coins/btcconnect/internal/redistorage"
+	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/dig-coins/btcconnect/pkg/rpclient"
 	"github.com/sgostarter/i/l"
 )

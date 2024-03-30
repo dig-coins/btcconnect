@@ -19,11 +19,11 @@ func main() {
 	}
 
 	s := btcserver.NewBTCServer(&btcserver.Config{
-		RPCHost:     cfg.RpcConfig.RPCHost,
-		RPCPort:     cfg.RpcConfig.RPCPort,
-		RPCUser:     cfg.RpcConfig.RPCUser,
-		RPCPassword: cfg.RpcConfig.RPCPassword,
-		RPCUseSSL:   cfg.RpcConfig.RPCUseSSL,
+		RPCHost:     cfg.RPCConfig.RPCHost,
+		RPCPort:     cfg.RPCConfig.RPCPort,
+		RPCUser:     cfg.RPCConfig.RPCUser,
+		RPCPassword: cfg.RPCConfig.RPCPassword,
+		RPCUseSSL:   cfg.RPCConfig.RPCUseSSL,
 	}, stg, cfg.GetBTCNetParams(), cfg.MultiSignAddressInfos, logger)
 
 	s.Wait()

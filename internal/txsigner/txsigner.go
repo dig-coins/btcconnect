@@ -22,6 +22,12 @@ type TxSigner struct {
 
 func NewTxSigner(coinType uint32, netParams *chaincfg.Params, seedFileName, seedSecKey string,
 	multiSignAddressInfo map[string]*share.MultiSignAddressInfo) (signer *TxSigner, err error) {
+	if coinType == 0 || netParams == nil {
+		err = commerr.ErrInvalidArgument
+
+		return
+	}
+
 	signer = &TxSigner{
 		netParams:            netParams,
 		multiSignAddressInfo: multiSignAddressInfo,
@@ -42,6 +48,7 @@ func (signer *TxSigner) init(seedFileName, seedSecKey string, coinType uint32) (
 	}
 
 	var seeds []string
+
 	err = yaml.Unmarshal(d, &seeds)
 	if err != nil {
 		return
@@ -96,6 +103,7 @@ func (signer *TxSigner) SignTx(unsignedTxHex string) (r string, rAllSigned bool,
 				if mgInfo.SignedNum >= mgInfo.MinSignNum {
 					continue
 				}
+
 				msPrivateKeys[idx] = append(msPrivateKeys[idx], privateKey)
 				mgInfo.SignedNum++
 			} else {
@@ -164,6 +172,12 @@ func (signer *TxSigner) UpdateMiddleSignedTxHex(msTxHex string) (
 		return
 	}
 
+	if !msTx.Check(signer.netParams) {
+		err = commerr.ErrBadFormat
+
+		return
+	}
+
 	var updateCount int
 
 	msPrivateKeys := make(map[int][]string)
@@ -221,16 +235,10 @@ func (signer *TxSigner) UpdateMiddleSignedTxHex(msTxHex string) (
 		return
 	}
 
-	inputs := make([]bitcoin.Input, 0, len(msTx.unsignedTx.Inputs))
-	for idx, input := range msTx.unsignedTx.Inputs {
-		inputs = append(inputs, bitcoin.GenInput(input.TxID, input.VOut, privateKeys[idx],
-			input.RedeemScript, input.Address, input.Amount))
-	}
-
 	if len(msTx.uncompleted.MultiSignInputInfos) == 0 {
-		err = bitcoin.SignBuildTx(msTx.tx, inputs, privateKeys, signer.netParams)
+		err = bitcoin.SignBuildTx(msTx.tx, msTx.bitcoinInputs, privateKeys, signer.netParams)
 	} else {
-		err = bitcoin.MultiSignBuildTx(msTx.tx, inputs, msPrivateKeys, privateKeys, signer.netParams)
+		err = bitcoin.MultiSignBuildTx(msTx.tx, msTx.bitcoinInputs, msPrivateKeys, privateKeys, signer.netParams)
 	}
 
 	if err != nil {

@@ -19,19 +19,12 @@ const (
 
 type BTCManConfig struct {
 	CoinType              CoinType                               `json:"coin_type" yaml:"coin_type"`
-	RpcConfig             btcserver.Config                       `json:"rpc_config" yaml:"rpc_config"`
+	RPCConfig             btcserver.Config                       `json:"rpc_config" yaml:"rpc_config"`
 	MultiSignAddressInfos map[string]*share.MultiSignAddressInfo `json:"multi_sign_address_infos" yaml:"multi_sign_address_infos"`
 }
 
 func (cfg *BTCManConfig) GetBTCNetParams() *chaincfg.Params {
-	switch cfg.CoinType {
-	case CoinTypeBTCTestnet:
-		return &chaincfg.TestNet3Params
-	case CoinTypeBTC:
-		fallthrough
-	default:
-		return &chaincfg.MainNetParams
-	}
+	return GetBTCNetParams(cfg.CoinType)
 }
 
 var (

@@ -1,15 +1,15 @@
 package edfile
 
 import (
-	"crypto/md5"
-	"github.com/sgostarter/libeasygo/pathutils"
+	"crypto/md5" // nolint: gosec
+	erand "crypto/rand"
+	"encoding/binary"
 	"math/rand"
 	"os"
 
-	erand "crypto/rand"
-	"encoding/binary"
 	"github.com/sgostarter/i/commerr"
 	"github.com/sgostarter/libeasygo/crypt/aes"
+	"github.com/sgostarter/libeasygo/pathutils"
 )
 
 func EncodePlainFile(d []byte) []byte {
@@ -17,7 +17,7 @@ func EncodePlainFile(d []byte) []byte {
 
 	_, _ = erand.Read(r)
 
-	startPos := rand.Intn(60)
+	startPos := rand.Intn(60) // nolint: gosec
 
 	binary.LittleEndian.PutUint32(r[10:], uint32(len(d)))
 	binary.LittleEndian.PutUint32(r[14:], uint32(startPos))
@@ -48,7 +48,7 @@ func DecodePlainFile(d []byte) (dd []byte, ok bool) {
 }
 
 func deriveSecKeyFromKeyS(key string) []byte {
-	sum := md5.Sum([]byte(key))
+	sum := md5.Sum([]byte(key)) // nolint: gosec
 
 	return sum[:]
 }
@@ -61,7 +61,7 @@ func WriteSecFile(name string, key string, data []byte) (err error) {
 
 	_ = pathutils.MustDirOfFileExists(name)
 
-	err = os.WriteFile(name, ed, 0644)
+	err = os.WriteFile(name, ed, 0600)
 
 	return
 }

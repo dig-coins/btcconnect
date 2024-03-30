@@ -2,6 +2,7 @@ package helper
 
 import (
 	"encoding/json"
+
 	"github.com/0xb10c/rawtx"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin"
 )
@@ -16,6 +17,7 @@ func ParseTx(txHex string) (txInfo string, err error) {
 	tx.FromWireMsgTx(wireTx)
 
 	txStats := tx.Stats()
+
 	txStatJSON, err := json.MarshalIndent(txStats, "", "  ")
 	if err != nil {
 		return

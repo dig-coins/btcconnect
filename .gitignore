@@ -1,4 +1,5 @@
 /.idea
 /datas
 seeds-data.*
-/ut.yaml
+/*.yaml
+/dest
