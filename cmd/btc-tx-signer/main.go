@@ -145,6 +145,8 @@ func autoSignLocal(signer *txsigner.TxSigner, netParams *chaincfg.Params, autoUn
 
 			continue
 		}
+
+		_ = os.Remove(unsignedTxFile)
 	}
 }
 

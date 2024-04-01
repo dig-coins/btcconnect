@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 func TestBroadcastTx(t *testing.T) {
 	s := utNewBTCServer(t)
 
-	txID, err := s.SendRawTransaction("01000000000101ff3bdd0e728614edcb78bf9e386d1e104fc2aa86a3d8dade792a686c172f668400000000171600143301b30e734816e15541fc583f76e9e47a6fc3e9ffffffff01dd9a07000000000017a914384e5c254516849a9d98f709d88eca37f5b8cc65870247304402202f13d4f835c8323ca5a14ceba66f311c077f3e504fe08601a9699f4dbf443a800220734ed885178d57548455880a47c2c9928324f832f441ae7698fca249d1d85cc70121030c8bf410a7b008b914c44d4aa88792764fb12b53a6052144db73f4b5e504878b00000000")
+	txID, err := s.SendRawTransaction("01000000000101d431feaf8d888bd78e22d97c8fd990d1e98b38051473daebe06957068febc6170000000000ffffffff010e0803000000000017a914384e5c254516849a9d98f709d88eca37f5b8cc658702483045022100cd49dfa65757e64ff79cbff78271e58743400c7bc6799f091d2bcfaeaa3de9a102200fd969699b8ed1bc0f55a463711ca0e125c13c8b69d81b1ae344a7f296e275050121030c8bf410a7b008b914c44d4aa88792764fb12b53a6052144db73f4b5e504878b00000000")
 	assert.Nil(t, err)
 	t.Log(txID)
 }
@@ -47,7 +47,7 @@ func TestTrans3(t *testing.T) {
 	s := utNewBTCServer(t)
 
 	unsignedTx, err := s.GenUnsignedTx4Gather(_uTConfig.GetWallet(t), []string{
-		"34KAAvz5Nad7G5wk56PKjPpVLfMjjkaeQb"},
+		"bc1qxvqmxrnnfqtwz42pl3vr7ahfu3axlslf4809f2"},
 		40, "36pjdq8Nb7XL2AuerdSeBxr6yazKomLgdV") // 4,21
 	assert.Nil(t, err)
 
