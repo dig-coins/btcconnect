@@ -1,3 +1,4 @@
+// nolint
 package btcserver
 
 import (
@@ -55,7 +56,7 @@ func TestBroadcastTx(t *testing.T) {
 func TestTrans2(t *testing.T) {
 	s := utNewBTCServer(t)
 
-	wpi, err := s.GenUnsignedTx4TransToOne("hoho2", "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
+	wpi, err := s.GenUnsignedTx4TransToOne(_uTConfig.GetWallet(t), "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
 		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 3000, 2, "")
 	assert.Nil(t, err)
 	t.Log(wpi)
@@ -64,9 +65,9 @@ func TestTrans2(t *testing.T) {
 func TestTrans3(t *testing.T) {
 	s := utNewBTCServer(t)
 
-	wpi, err := s.GenUnsignedTx4Gather("hoho2", []string{
-		"tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i"},
-		2, "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx")
+	wpi, err := s.GenUnsignedTx4Gather(_uTConfig.GetWallet(t), []string{
+		"34KAAvz5Nad7G5wk56PKjPpVLfMjjkaeQb"},
+		40, "36pjdq8Nb7XL2AuerdSeBxr6yazKomLgdV") // 4,21
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
@@ -74,7 +75,7 @@ func TestTrans3(t *testing.T) {
 func TestTrans4(t *testing.T) {
 	s := utNewBTCServer(t)
 
-	wpi, err := s.GenUnsignedTx4TransTo("hoho2", []string{
+	wpi, err := s.GenUnsignedTx4TransTo(_uTConfig.GetWallet(t), []string{
 		"tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
 	}, []TransOutput{
 		{
@@ -183,7 +184,7 @@ func TestBTCServer_GenMultiSignatureAddress(t *testing.T) {
 func TestTrans2MultiSignAddress(t *testing.T) {
 	s := utNewBTCServer(t)
 
-	wpi, err := s.GenUnsignedTx4TransToOne("hoho2", "tb1q88h06gxq5cgpy566832d6qzcyaey7xhddl2het",
+	wpi, err := s.GenUnsignedTx4TransToOne(_uTConfig.GetWallet(t), "tb1q88h06gxq5cgpy566832d6qzcyaey7xhddl2het",
 		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 20823, 2, "")
 	assert.Nil(t, err)
 	t.Log(wpi)
@@ -202,7 +203,7 @@ func TestTransFromMultiSigAndWitnessAddress(t *testing.T) {
 
 	s := utNewBTCServer(t)
 
-	wpi, err := s.GenUnsignedTx4TransTo("hoho2", []string{
+	wpi, err := s.GenUnsignedTx4TransTo(_uTConfig.GetWallet(t), []string{
 		"tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4",
 		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
 	}, []TransOutput{
@@ -218,7 +219,7 @@ func TestTransFromMultiSigAndWitnessAddress(t *testing.T) {
 func TestTransFromMultiSigAndWitnessAddress2(t *testing.T) {
 	s := utNewBTCServer(t)
 
-	wpi, err := s.GenUnsignedTx4TransTo("hoho2", []string{
+	wpi, err := s.GenUnsignedTx4TransTo(_uTConfig.GetWallet(t), []string{
 		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
 	}, []TransOutput{
 		{

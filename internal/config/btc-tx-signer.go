@@ -13,6 +13,7 @@ type BTCTxSignerConfig struct {
 	SeedFileName          string                                 `json:"seed_file_name" yaml:"seed_file_name"`
 	SeedSecKey            string                                 `json:"seed_sec_key" yaml:"seed_sec_key"`
 	MultiSignAddressInfos map[string]*share.MultiSignAddressInfo `json:"multi_sign_address_infos" yaml:"multi_sign_address_infos"`
+	AutoUnsignedTxRoot    string                                 `json:"auto_unsigned_tx_root" yaml:"auto_unsigned_tx_root"`
 }
 
 var (

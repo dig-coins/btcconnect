@@ -8,6 +8,7 @@ import (
 type KeyInfo struct {
 	Idx                 uint32
 	WifPrivateKey       string
+	PublicKey           string
 	Address             string
 	AddressSegWit       string
 	AddressSegWitNative string
@@ -70,6 +71,8 @@ func (kp *KeyPool) initOneSeed(seed string, coinType uint32) (err error) {
 			return
 		}
 
+		iKey.PublicKey = wallet.GetKey().PublicHex(true)
+
 		iKey.Address, err = wallet.GetAddress()
 		if err != nil {
 			return
@@ -100,7 +103,13 @@ func (kp *KeyPool) initOneSeed(seed string, coinType uint32) (err error) {
 }
 
 func (kp *KeyPool) GetKeys() []KeyInfo {
-	return append([]KeyInfo{}, kp.keys...)
+	keys := append([]KeyInfo{}, kp.keys...)
+
+	for idx := 0; idx < len(keys); idx++ {
+		keys[idx].WifPrivateKey = ""
+	}
+
+	return keys
 }
 
 func (kp *KeyPool) GetPrivateKeyByAddress(address string) (string, error) {

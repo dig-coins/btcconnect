@@ -41,7 +41,7 @@ func (s *BTCServer) listWalletUnspent(wallet string) (unspent []Unspent, err err
 func (s *BTCServer) estimateSmartFee(confirmationTarget int) (fee int64, err error) {
 	var r map[string]any
 
-	err = s.rpcClient.CallWrapper("estimatesmartfee", []any{confirmationTarget}, &r)
+	err = s.rpcClient.CallWrapper("estimatesmartfee", []any{confirmationTarget, "ECONOMICAL"}, &r)
 	if err != nil {
 		return
 	}

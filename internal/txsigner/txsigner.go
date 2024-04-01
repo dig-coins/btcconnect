@@ -68,6 +68,10 @@ func (signer *TxSigner) init(seedFileName, seedSecKey string, coinType uint32) (
 	return
 }
 
+func (signer *TxSigner) GetKeys() []keypool.KeyInfo {
+	return signer.keyPool.GetKeys()
+}
+
 func (signer *TxSigner) SignTx(unsignedTxHex string) (r string, rAllSigned bool, err error) {
 	unsignedTx, err := btctx.UnmarshalUnsignedTx(unsignedTxHex)
 	if err != nil {

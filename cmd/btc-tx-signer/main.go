@@ -1,12 +1,18 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/btcsuite/btcd/chaincfg"
@@ -19,6 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sgostarter/i/commerr"
 	"github.com/sgostarter/i/l"
+	"github.com/sgostarter/libeasygo/pathutils"
 )
 
 func main() {
@@ -66,7 +73,79 @@ func main() {
 		return
 	}
 
-	runCommandServer(signer, config.GetBTCNetParams(cfg.CoinType), cfg.Listens, logger)
+	if cfg.AutoUnsignedTxRoot != "" {
+		go autoSignLocal(signer, config.GetBTCNetParams(cfg.CoinType), cfg.AutoUnsignedTxRoot, logger)
+	}
+
+	if cfg.Listens != "" {
+		go runCommandServer(signer, config.GetBTCNetParams(cfg.CoinType), cfg.Listens, logger)
+	}
+
+	c := make(chan os.Signal, 1)
+
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM,
+		syscall.SIGQUIT)
+
+	<-c
+}
+
+func autoSignLocal(signer *txsigner.TxSigner, netParams *chaincfg.Params, autoUnsignedTxRoot string, logger l.Wrapper) {
+	unsignedTxFile := filepath.Join(autoUnsignedTxRoot, "unsigned-tx.json")
+	signedTxFile := filepath.Join(autoUnsignedTxRoot, "signed-tx-result.json")
+
+	var unsignedTxData []byte
+
+	for {
+		time.Sleep(time.Second * 10)
+
+		if exists, _ := pathutils.IsFileExists(unsignedTxFile); !exists {
+			continue
+		}
+
+		d, err := os.ReadFile(unsignedTxFile)
+		if err != nil {
+			logger.WithFields(l.ErrorField(err), l.StringField("file", unsignedTxFile)).Error("read file failed")
+
+			continue
+		}
+
+		if bytes.Equal(unsignedTxData, d) {
+			continue
+		}
+
+		var command share.Command
+
+		err = json.Unmarshal(d, &command)
+		if err != nil {
+			logger.WithFields(l.ErrorField(err)).Error("unmarshal failed")
+
+			continue
+		}
+
+		if !command.Valid() {
+			logger.Error("invalid command")
+
+			continue
+		}
+
+		unsignedTxData = d
+
+		cr := processCommand(signer, netParams, &command, logger)
+
+		d, err = json.MarshalIndent(cr, "", "\t")
+		if err != nil {
+			logger.WithFields(l.ErrorField(err)).Error("MarshalIndent failed")
+
+			continue
+		}
+
+		err = os.WriteFile(signedTxFile, []byte(string(d)+"\n"), 0600)
+		if err != nil {
+			logger.WithFields(l.ErrorField(err)).Error("write file faied")
+
+			continue
+		}
+	}
 }
 
 func dbgCommand(command *share.Command, netParams *chaincfg.Params, logger l.Wrapper) (ok bool) {
@@ -166,6 +245,10 @@ func runCommandServer(signer *txsigner.TxSigner, netParams *chaincfg.Params, lis
 
 	r.Any("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello")
+	})
+
+	r.GET("/addresses", func(c *gin.Context) {
+		c.JSON(http.StatusOK, signer.GetKeys())
 	})
 
 	r.POST("/command/encrypt", func(c *gin.Context) {

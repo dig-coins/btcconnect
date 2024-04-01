@@ -129,7 +129,9 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 
 	size := bitcoin.GetTxVirtualSize2(tx)
 
-	changeAmount = totalAmount - outputAmount - size*estimateSmartFee/1000 - 1
+	fee := size * estimateSmartFee / 1000
+	changeAmount = totalAmount - outputAmount - fee - 1
+
 	if changeAmount < 0 {
 		err = errors.New("insufficient")
 

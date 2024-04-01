@@ -27,3 +27,7 @@ func ParseTx(txHex string) (txInfo string, err error) {
 
 	return
 }
+
+func ParseScript(scripts []byte) string {
+	return rawtx.BitcoinScript(scripts).Parse().String()
+}

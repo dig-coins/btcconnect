@@ -40,3 +40,7 @@ func (cfg *UTConfig) GetBTCRpcUseTLS(t *testing.T) bool {
 func (cfg *UTConfig) GetSSeedsFileSecKey(t *testing.T) string {
 	return cast.ToString(cfg.cfg.GetEnv(t, "sSeedsKey"))
 }
+
+func (cfg *UTConfig) GetWallet(t *testing.T) string {
+	return cast.ToString(cfg.cfg.GetEnv(t, "rWallet"))
+}
