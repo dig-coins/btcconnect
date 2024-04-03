@@ -9,7 +9,7 @@ import (
 
 type BTCTxSignerConfig struct {
 	Listens               string                                 `json:"listens" yaml:"listens"`
-	CoinType              CoinType                               `json:"coin_type" yaml:"coin_type"`
+	CoinType              share.CoinType                         `json:"coin_type" yaml:"coin_type"`
 	SeedFileName          string                                 `json:"seed_file_name" yaml:"seed_file_name"`
 	SeedSecKey            string                                 `json:"seed_sec_key" yaml:"seed_sec_key"`
 	MultiSignAddressInfos map[string]*share.MultiSignAddressInfo `json:"multi_sign_address_infos" yaml:"multi_sign_address_infos"`

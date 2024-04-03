@@ -1,12 +1,10 @@
 package btcserver
 
-/*
 import (
 	"context"
 	"encoding/hex"
 	"strings"
 
-	"github.com/sgostarter/i/commerr"
 	"github.com/sgostarter/i/l"
 	"github.com/spf13/cast"
 )
@@ -34,7 +32,8 @@ func (s *BTCServer) dataRoutine() {
 	}
 }
 
-func (s *BTCServer) doDataProcess(ctx context.Context, _logger l.Wrapper) {
+// nolint: funlen
+func (s *BTCServer) doDataProcess(_ context.Context, _logger l.Wrapper) {
 	cli := s.rpcClient
 
 	var blockHeight int64
@@ -141,8 +140,6 @@ func (s *BTCServer) doDataProcess(ctx context.Context, _logger l.Wrapper) {
 						if asmS == "" || hexS == "" {
 							tOLogger.Error("no asm or hex")
 
-							err = commerr.ErrInternal
-
 							return
 						}
 
@@ -152,20 +149,17 @@ func (s *BTCServer) doDataProcess(ctx context.Context, _logger l.Wrapper) {
 						if address == "" {
 							tOLogger.WithFields(l.StringField("vType", vType)).Error("no address")
 
-							err = commerr.ErrInternal
-
 							return
 						}
 
 						tOLogger.Infof("%s address is %s\n", vType, address)
 					case "nonstandard":
 						tOLogger.Warn("nonstandard")
+
 						hexS = ""
 					case "multisig":
 						if asmS == "" || hexS == "" {
 							tOLogger.Error("no asm or hex")
-
-							err = commerr.ErrInternal
 
 							return
 						}
@@ -177,6 +171,7 @@ func (s *BTCServer) doDataProcess(ctx context.Context, _logger l.Wrapper) {
 						dbgInfo += "/"
 						dbgInfo += asmPs[len(asmPs)-2]
 						dbgInfo += " public key:"
+
 						for x := 1; x < len(asmPs)-2; x++ {
 							dbgInfo += asmPs[x]
 							dbgInfo += " "
@@ -185,13 +180,12 @@ func (s *BTCServer) doDataProcess(ctx context.Context, _logger l.Wrapper) {
 						tOLogger.Info("multisig => " + dbgInfo)
 					case "nulldata":
 						tOLogger.Warn("nulldata")
+
 						hexS = ""
 					case "witness_unknown":
 						tOLogger.Warn("witness_unknown")
 					default:
 						tOLogger.WithFields(l.StringField("vType", vType)).Error("unknown vType")
-
-						err = commerr.ErrInternal
 
 						return
 					}
@@ -220,4 +214,3 @@ func (s *BTCServer) doDataProcess(ctx context.Context, _logger l.Wrapper) {
 		}
 	}
 }
-*/

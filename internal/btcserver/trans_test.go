@@ -31,17 +31,18 @@ func utNewBTCServer(t *testing.T) *BTCServer {
 		RPCUser:     _uTConfig.GetBTCRpcUser(t),
 		RPCPassword: _uTConfig.GetBTCRpcPassword(t),
 		RPCUseSSL:   _uTConfig.GetBTCRpcUseTLS(t),
-	}, stg, &chaincfg.TestNet3Params, map[string]*share.MultiSignAddressInfo{
-		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i": {
-			PublicKeys: []string{
-				"02f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e",
-				"028e7bbb364b64687db98ad39674e70c194aa01ef3da3148791536f25ab8861c02",
-				"037cb184baf184ec6d3f24c927c6243dbb122ae7f9353425f84f3dfcd95fdcd0f9",
-				"037f9e1716a16efb9cf977a628942a5ee193aa29d31d99a6ddbb80d1d7dd69b5da",
+		MultiSignAddressInfos: map[string]*share.MultiSignAddressInfo{
+			"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i": {
+				PublicKeys: []string{
+					"02f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e",
+					"028e7bbb364b64687db98ad39674e70c194aa01ef3da3148791536f25ab8861c02",
+					"037cb184baf184ec6d3f24c927c6243dbb122ae7f9353425f84f3dfcd95fdcd0f9",
+					"037f9e1716a16efb9cf977a628942a5ee193aa29d31d99a6ddbb80d1d7dd69b5da",
+				},
+				MinSignNum: 3,
 			},
-			MinSignNum: 3,
 		},
-	}, nil)
+	}, stg, nil)
 }
 
 // nolint
@@ -57,7 +58,7 @@ func TestTrans2(t *testing.T) {
 	s := utNewBTCServer(t)
 
 	wpi, err := s.GenUnsignedTx4TransToOne(_uTConfig.GetWallet(t), "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
-		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 3000, 2, "")
+		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 3000, 2, "", true)
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
@@ -67,7 +68,7 @@ func TestTrans3(t *testing.T) {
 
 	wpi, err := s.GenUnsignedTx4Gather(_uTConfig.GetWallet(t), []string{
 		"34KAAvz5Nad7G5wk56PKjPpVLfMjjkaeQb"},
-		40, "36pjdq8Nb7XL2AuerdSeBxr6yazKomLgdV") // 4,21
+		40, "36pjdq8Nb7XL2AuerdSeBxr6yazKomLgdV", true) // 4,21
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
@@ -82,7 +83,7 @@ func TestTrans4(t *testing.T) {
 			Address: "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
 			Amount:  70000,
 		},
-	}, 2, "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx")
+	}, 2, "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx", true)
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
@@ -118,7 +119,7 @@ func Test_selectUnspentInputs(t *testing.T) {
 	}}
 
 	inputs, outputs, err := s.selectUnspentInputs(unspentList, nil, 100, nil,
-		"mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU")
+		"mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", true)
 	assert.Nil(t, err)
 	assert.EqualValues(t, 3, len(inputs))
 	assert.EqualValues(t, 1, len(outputs))
@@ -128,7 +129,7 @@ func Test_selectUnspentInputs(t *testing.T) {
 	inputs, outputs, err = s.selectUnspentInputs(unspentList, nil, 100, []TransOutput{{
 		Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
 		Amount:  100,
-	}}, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw")
+	}}, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", true)
 	assert.EqualValues(t, 1, len(inputs))
 	assert.EqualValues(t, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", inputs[0].Address)
 
@@ -142,7 +143,7 @@ func Test_selectUnspentInputs(t *testing.T) {
 	inputs, outputs, err = s.selectUnspentInputs(unspentList, nil, 100, []TransOutput{{
 		Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
 		Amount:  100,
-	}}, "")
+	}}, "", true)
 	assert.EqualValues(t, 1, len(inputs))
 	assert.EqualValues(t, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", inputs[0].Address)
 
@@ -156,7 +157,7 @@ func Test_selectUnspentInputs(t *testing.T) {
 	inputs, outputs, err = s.selectUnspentInputs(unspentList, []string{"2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq"}, 100, []TransOutput{{
 		Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
 		Amount:  100,
-	}}, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw")
+	}}, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", true)
 	assert.EqualValues(t, 1, len(inputs))
 	assert.EqualValues(t, "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq", inputs[0].Address)
 
@@ -185,7 +186,7 @@ func TestTrans2MultiSignAddress(t *testing.T) {
 	s := utNewBTCServer(t)
 
 	wpi, err := s.GenUnsignedTx4TransToOne(_uTConfig.GetWallet(t), "tb1q88h06gxq5cgpy566832d6qzcyaey7xhddl2het",
-		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 20823, 2, "")
+		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 20823, 2, "", true)
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
@@ -211,7 +212,7 @@ func TestTransFromMultiSigAndWitnessAddress(t *testing.T) {
 			Address: "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
 			Amount:  70100,
 		},
-	}, 2, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i")
+	}, 2, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", true)
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
@@ -226,7 +227,7 @@ func TestTransFromMultiSigAndWitnessAddress2(t *testing.T) {
 			Address: "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
 			Amount:  1000,
 		},
-	}, 2, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i")
+	}, 2, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", true)
 	assert.Nil(t, err)
 	t.Log(wpi)
 }

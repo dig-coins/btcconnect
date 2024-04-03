@@ -31,7 +31,7 @@ import (
 func main() {
 	var configFile, commandS string
 
-	flag.StringVar(&configFile, "config", "btc-tx-signer-1.yaml", "config file path")
+	flag.StringVar(&configFile, "config", "", "config file path")
 	flag.StringVar(&commandS, "command", "", "hex command string")
 	flag.Parse()
 
@@ -44,15 +44,15 @@ func main() {
 
 	cfg := config.GetBTCTxSignerConfig(configFile)
 
-	signer, err := txsigner.NewTxSigner(config.GetHDWalletCoinType(cfg.CoinType),
-		config.GetBTCNetParams(cfg.CoinType), cfg.SeedFileName, cfg.SeedSecKey,
+	signer, err := txsigner.NewTxSigner(share.GetHDWalletCoinType(cfg.CoinType),
+		share.GetBTCNetParams(cfg.CoinType), cfg.SeedFileName, cfg.SeedSecKey,
 		cfg.MultiSignAddressInfos)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
 	if commandS != "" {
-		cr := processCommandS(signer, config.GetBTCNetParams(cfg.CoinType), commandS, logger)
+		cr := processCommandS(signer, share.GetBTCNetParams(cfg.CoinType), commandS, logger)
 		if cr.ErrMessage != "" {
 			logger.Error("exception: " + cr.ErrMessage)
 
@@ -74,11 +74,11 @@ func main() {
 	}
 
 	if cfg.AutoUnsignedTxRoot != "" {
-		go autoSignLocal(signer, config.GetBTCNetParams(cfg.CoinType), cfg.AutoUnsignedTxRoot, logger)
+		go autoSignLocal(signer, share.GetBTCNetParams(cfg.CoinType), cfg.AutoUnsignedTxRoot, logger)
 	}
 
 	if cfg.Listens != "" {
-		go runCommandServer(signer, config.GetBTCNetParams(cfg.CoinType), cfg.Listens, logger)
+		go runCommandServer(signer, share.GetBTCNetParams(cfg.CoinType), cfg.Listens, logger)
 	}
 
 	c := make(chan os.Signal, 1)
@@ -150,16 +150,22 @@ func autoSignLocal(signer *txsigner.TxSigner, netParams *chaincfg.Params, autoUn
 	}
 }
 
-func dbgCommand(command *share.Command, netParams *chaincfg.Params, logger l.Wrapper) (ok bool) {
+func dbgCommand(command *share.Command, netParams *chaincfg.Params, logger l.Wrapper) (totalAmount, outputAmount int64, ok bool) {
 	fnDbgUnsignedTx := func(unsignedTx *btctx.UnsignedTx) {
 		for idx, input := range unsignedTx.Inputs {
 			logger.Infof("  INPUT[%d]  %s %s - %d amount is %d\n", idx, input.Address,
 				input.TxID, input.VOut, input.Amount)
+
+			totalAmount += input.Amount
 		}
 
 		for idx, output := range unsignedTx.Outputs {
 			logger.Infof("  OUTPUT[%d]  %s amount is %d\n", idx, output.Address, output.Amount)
+
+			outputAmount += output.Amount
 		}
+
+		logger.Infof("FEE is: %d %d/%d\n", totalAmount-outputAmount, outputAmount, totalAmount)
 	}
 
 	switch command.CommandType {
@@ -217,7 +223,12 @@ func processCommand(signer *txsigner.TxSigner, netParams *chaincfg.Params, comma
 		return
 	}
 
-	dbgCommand(command, netParams, logger)
+	totalAmount, outputAmount, ok := dbgCommand(command, netParams, logger)
+	if !ok {
+		cr.ErrMessage = "check failed"
+
+		return
+	}
 
 	var err error
 
@@ -232,6 +243,10 @@ func processCommand(signer *txsigner.TxSigner, netParams *chaincfg.Params, comma
 
 	if err != nil {
 		cr.ErrMessage = err.Error()
+	} else {
+		cr.InputAmount = totalAmount
+		cr.OutputAmount = outputAmount
+		cr.FeeAmount = totalAmount - outputAmount
 	}
 
 	return

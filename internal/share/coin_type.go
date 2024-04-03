@@ -1,8 +1,16 @@
-package config
+package share
 
 import (
 	"github.com/btcsuite/btcd/chaincfg"
 	hdwallet "github.com/dig-coins/hd-wallet"
+)
+
+type CoinType int
+
+const (
+	CoinTypeStart      CoinType = 1
+	CoinTypeBTCTestnet          = iota
+	CoinTypeBTC
 )
 
 func GetBTCNetParams(coinType CoinType) *chaincfg.Params {

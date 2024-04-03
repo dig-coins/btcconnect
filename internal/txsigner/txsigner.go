@@ -1,6 +1,8 @@
 package txsigner
 
 import (
+	"fmt"
+
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/dig-coins/btcconnect/internal/btctx"
@@ -95,6 +97,12 @@ func (signer *TxSigner) SignTx(unsignedTxHex string) (r string, rAllSigned bool,
 			uncompleted.SignInputFlag[idx] = privateKeys[idx] != ""
 
 			continue
+		}
+
+		if input.RedeemScript == "" {
+			err = cuserror.NewWithErrorMsg(fmt.Sprintf("input %d is multi sign address, but no redeem script", idx))
+
+			return
 		}
 
 		msPrivateKeys[idx] = make([]string, 0, 2)

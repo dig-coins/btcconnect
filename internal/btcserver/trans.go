@@ -24,8 +24,8 @@ type TransInput struct {
 }
 
 type TransOutput struct {
-	Address string
-	Amount  int64
+	Address string `json:"address"`
+	Amount  int64  `json:"amount"`
 }
 
 func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransOutput,
@@ -50,7 +50,7 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 
 		totalAmount += input.Amount
 
-		i, ok := s.multiSignAddressInfo[input.Address]
+		i, ok := s.cfg.MultiSignAddressInfos[input.Address]
 		if !ok {
 			privateKeys[idx] = "cRGtUsda56iwyg7svGUJfcMP3bFLFvyhWpdzoYcKwfuZZeqQoij7"
 
@@ -98,12 +98,12 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 		tx, err = btctx.GenSignedTx(&btctx.UnsignedTx{
 			Inputs:  oInputs,
 			Outputs: oOutputs,
-		}, s.netParams)
+		}, s.cfg.GetBTCNetParams())
 	} else {
 		tx, err = btctx.GenMultiSignedTx(&btctx.UnsignedTx{
 			Inputs:  oInputs,
 			Outputs: oOutputs,
-		}, uncompleted, s.netParams)
+		}, uncompleted, s.cfg.GetBTCNetParams())
 	}
 
 	if err != nil {
@@ -118,9 +118,9 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 	}
 
 	if len(uncompleted.MultiSignInputInfos) == 0 {
-		err = bitcoin.SignBuildTx(tx, btInputs, privateKeys, s.netParams)
+		err = bitcoin.SignBuildTx(tx, btInputs, privateKeys, s.cfg.GetBTCNetParams())
 	} else {
-		err = bitcoin.MultiSignBuildTx(tx, btInputs, msPrivateKeys, privateKeys, s.netParams)
+		err = bitcoin.MultiSignBuildTx(tx, btInputs, msPrivateKeys, privateKeys, s.cfg.GetBTCNetParams())
 	}
 
 	if err != nil {
@@ -130,7 +130,7 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 	size := bitcoin.GetTxVirtualSize2(tx)
 
 	fee := size * estimateSmartFee / 1000
-	changeAmount = totalAmount - outputAmount - fee - 1
+	changeAmount = totalAmount - outputAmount - fee - 2
 
 	if changeAmount < 0 {
 		err = errors.New("insufficient")
@@ -142,7 +142,7 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 }
 
 func (s *BTCServer) genTransToTx(inputs []TransInput, outputs []TransOutput) (txHex string, err error) {
-	txBuild := bitcoin.NewTxBuild(1, s.netParams)
+	txBuild := bitcoin.NewTxBuild(1, s.cfg.GetBTCNetParams())
 
 	for _, input := range inputs {
 		txBuild.AddInput2(input.TxID, input.VOut, input.PrivateKey, input.Address, input.Amount)
@@ -181,7 +181,7 @@ func (s *BTCServer) WalletPayTo(wallet string, outputs []TransOutput, confirmati
 	}
 
 	inputs, outputs, err := s.selectUnspentInputs(unspentList, nil, estimateSmartFee,
-		outputs, changeAddress)
+		outputs, changeAddress, true)
 	if err != nil {
 		return
 	}
@@ -232,7 +232,7 @@ func (s *BTCServer) GetUnsignedTxEx(inputs []TransInput, outputs []TransOutput) 
 //
 
 func (s *BTCServer) WalletPayToUnsignedTx(wallet string, payAddresses []string, rawOutputs []TransOutput,
-	confirmationTarget int, changeAddress string) (unsignedTxHex string, err error) {
+	confirmationTarget int, changeAddress string, minTransFlag bool) (unsignedTxHex string, err error) {
 	unspentList, err := s.listWalletUnspent(wallet)
 	if err != nil {
 		return
@@ -243,7 +243,8 @@ func (s *BTCServer) WalletPayToUnsignedTx(wallet string, payAddresses []string, 
 		return
 	}
 
-	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, rawOutputs, changeAddress)
+	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, rawOutputs,
+		changeAddress, minTransFlag)
 	if err != nil {
 		return
 	}
@@ -253,30 +254,31 @@ func (s *BTCServer) WalletPayToUnsignedTx(wallet string, payAddresses []string, 
 	return
 }
 
-func (s *BTCServer) GenUnsignedTx4Gather(wallet string, fromAddresses []string, confirmationTarget int, changeAddress string) (wpi string, err error) {
-	return s.genUnsignedTx(wallet, fromAddresses, nil, confirmationTarget, changeAddress)
+func (s *BTCServer) GenUnsignedTx4Gather(wallet string, fromAddresses []string, confirmationTarget int,
+	changeAddress string, minTransFlag bool) (wpi string, err error) {
+	return s.genUnsignedTx(wallet, fromAddresses, nil, confirmationTarget, changeAddress, minTransFlag)
 }
 
 func (s *BTCServer) GenUnsignedTx4TransTo(wallet string, fromAddresses []string, outputs []TransOutput,
-	confirmationTarget int, changeAddress string) (wpi string, err error) {
-	return s.genUnsignedTx(wallet, fromAddresses, outputs, confirmationTarget, changeAddress)
+	confirmationTarget int, changeAddress string, minTransFlag bool) (wpi string, err error) {
+	return s.genUnsignedTx(wallet, fromAddresses, outputs, confirmationTarget, changeAddress, minTransFlag)
 }
 
 func (s *BTCServer) GenUnsignedTx4TransToMulti(wallet string, fromAddress string, outputs []TransOutput,
-	confirmationTarget int, changeAddress string) (wpi string, err error) {
-	return s.genUnsignedTx(wallet, []string{fromAddress}, outputs, confirmationTarget, changeAddress)
+	confirmationTarget int, changeAddress string, minTransFlag bool) (wpi string, err error) {
+	return s.genUnsignedTx(wallet, []string{fromAddress}, outputs, confirmationTarget, changeAddress, minTransFlag)
 }
 
 func (s *BTCServer) GenUnsignedTx4TransToOne(wallet string, fromAddress, toAddress string, amount int64,
-	confirmationTarget int, changeAddress string) (wpi string, err error) {
+	confirmationTarget int, changeAddress string, minTransFlag bool) (wpi string, err error) {
 	return s.genUnsignedTx(wallet, []string{fromAddress}, []TransOutput{{
 		Address: toAddress,
 		Amount:  amount,
-	}}, confirmationTarget, changeAddress)
+	}}, confirmationTarget, changeAddress, minTransFlag)
 }
 
 func (s *BTCServer) genUnsignedTx(wallet string, payAddresses []string, outputs []TransOutput,
-	confirmationTarget int, changeAddress string) (wpi string, err error) {
+	confirmationTarget int, changeAddress string, minTransFlag bool) (wpi string, err error) {
 	unspentList, err := s.listWalletUnspent(wallet)
 	if err != nil {
 		return
@@ -287,7 +289,8 @@ func (s *BTCServer) genUnsignedTx(wallet string, payAddresses []string, outputs 
 		return
 	}
 
-	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, outputs, changeAddress)
+	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, outputs,
+		changeAddress, minTransFlag)
 	if err != nil {
 		return
 	}
@@ -326,7 +329,7 @@ func (s *BTCServer) calcChange4Trans(inputs []TransInput, outputs []TransOutput,
 }
 
 func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []string,
-	estimateSmartFee int64, rawOutputs []TransOutput, changeAddress string) (
+	estimateSmartFee int64, rawOutputs []TransOutput, changeAddress string, minTransFlag bool) (
 	inputs []TransInput, outputs []TransOutput, err error) {
 	if changeAddress == "" {
 		if len(payAddresses) == 1 && len(rawOutputs) > 0 {
@@ -371,11 +374,11 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 			Amount:  amount,
 		})
 
-		i, ok := s.multiSignAddressInfo[unspent.Address]
+		i, ok := s.cfg.MultiSignAddressInfos[unspent.Address]
 		if ok {
 			var redeemScript []byte
 
-			redeemScript, err = bitcoin.GetRedeemScript(i.PublicKeys, i.MinSignNum, s.netParams)
+			redeemScript, err = bitcoin.GetRedeemScript(i.PublicKeys, i.MinSignNum, s.cfg.GetBTCNetParams())
 			if err != nil {
 				return
 			}
@@ -389,7 +392,7 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 			changeAddress = unspent.Address
 		}
 
-		if outputAmount == 0 || totalAmount <= outputAmount {
+		if outputAmount == 0 || !minTransFlag || totalAmount <= outputAmount {
 			continue
 		}
 
@@ -401,7 +404,13 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 		}
 	}
 
-	if outputAmount > 0 {
+	if totalAmount <= outputAmount {
+		err = commerr.ErrResourceExhausted
+
+		return
+	}
+
+	if minTransFlag {
 		if err == nil && !success {
 			err = commerr.ErrResourceExhausted
 		}

@@ -3,36 +3,16 @@ package config
 import (
 	"sync"
 
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/dig-coins/btcconnect/internal/btcserver"
-	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/sgostarter/libconfig"
 )
 
-type CoinType int
-
-const (
-	CoinTypeStart      CoinType = 1
-	CoinTypeBTCTestnet          = iota
-	CoinTypeBTC
-)
-
-type BTCManConfig struct {
-	CoinType              CoinType                               `json:"coin_type" yaml:"coin_type"`
-	RPCConfig             btcserver.Config                       `json:"rpc_config" yaml:"rpc_config"`
-	MultiSignAddressInfos map[string]*share.MultiSignAddressInfo `json:"multi_sign_address_infos" yaml:"multi_sign_address_infos"`
-}
-
-func (cfg *BTCManConfig) GetBTCNetParams() *chaincfg.Params {
-	return GetBTCNetParams(cfg.CoinType)
-}
-
 var (
-	_config BTCManConfig
+	_config btcserver.Config
 	_once   sync.Once
 )
 
-func GetBTCManConfig() *BTCManConfig {
+func GetBTCManConfig() *btcserver.Config {
 	_once.Do(func() {
 		_, err := libconfig.Load("btc-man.yaml", &_config)
 		if err != nil {

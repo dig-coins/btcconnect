@@ -18,7 +18,7 @@ func (s *BTCServer) GenMultiSignatureAddress(pubKeys []string, minSignNum int, n
 		return
 	}
 
-	multiAddress, err = bitcoin.GenerateMultiAddress(redeemScript, s.netParams)
+	multiAddress, err = bitcoin.GenerateMultiAddress(redeemScript, s.cfg.GetBTCNetParams())
 
 	return
 }
