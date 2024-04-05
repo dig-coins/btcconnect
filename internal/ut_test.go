@@ -6,10 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/dig-coins/btcconnect/internal/btcserver"
 	"github.com/dig-coins/btcconnect/internal/btctx"
-	"github.com/dig-coins/btcconnect/internal/redistorage"
 	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/dig-coins/btcconnect/internal/utl"
 	"github.com/stretchr/testify/assert"
@@ -31,16 +29,16 @@ func TestBroadcastTx(t *testing.T) {
 }
 
 func utNewBTCServer(t *testing.T) *btcserver.BTCServer {
-	stg, err := redistorage.NewRedisStorage()
-	assert.Nil(t, err)
-
 	return btcserver.NewBTCServer(&btcserver.Config{
-		RPCHost:     _uTConfig.GetBTCRpcHost(t),
-		RPCPort:     _uTConfig.GetBTCRpcPort(t),
-		RPCUser:     _uTConfig.GetBTCRpcUser(t),
-		RPCPassword: _uTConfig.GetBTCRpcPassword(t),
-		RPCUseSSL:   _uTConfig.GetBTCRpcUseTLS(t),
-	}, stg, &chaincfg.MainNetParams, nil, nil)
+		CoinType:              share.CoinTypeBTC,
+		Listens:               ":9001",
+		RPCHost:               _uTConfig.GetBTCRpcHost(t),
+		RPCPort:               _uTConfig.GetBTCRpcPort(t),
+		RPCUser:               _uTConfig.GetBTCRpcUser(t),
+		RPCPassword:           _uTConfig.GetBTCRpcPassword(t),
+		RPCUseSSL:             _uTConfig.GetBTCRpcUseTLS(t),
+		MultiSignAddressInfos: nil,
+	}, nil, nil)
 }
 
 func TestTrans3(t *testing.T) {
@@ -48,7 +46,7 @@ func TestTrans3(t *testing.T) {
 
 	unsignedTx, err := s.GenUnsignedTx4Gather(_uTConfig.GetWallet(t), []string{
 		"bc1qxvqmxrnnfqtwz42pl3vr7ahfu3axlslf4809f2"},
-		40, "36pjdq8Nb7XL2AuerdSeBxr6yazKomLgdV") // 4,21
+		40, "36pjdq8Nb7XL2AuerdSeBxr6yazKomLgdV", true) // 4,21
 	assert.Nil(t, err)
 
 	tx, err := btctx.UnmarshalUnsignedTx(unsignedTx)

@@ -3,11 +3,13 @@ package btcserver
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/dig-coins/btcconnect/internal/redistorage"
 	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/dig-coins/btcconnect/pkg/rpclient"
+	"github.com/patrickmn/go-cache"
 	"github.com/sgostarter/i/l"
 	"github.com/sgostarter/libeasygo/cuserror"
 )
@@ -39,6 +41,8 @@ type BTCServer struct {
 	stg       redistorage.Storage
 
 	rpcClient *rpclient.RpcClient
+
+	cacheData *cache.Cache
 }
 
 func NewBTCServer(cfg *Config, stg redistorage.Storage, logger l.Wrapper) *BTCServer {
@@ -60,6 +64,7 @@ func NewBTCServer(cfg *Config, stg redistorage.Storage, logger l.Wrapper) *BTCSe
 		ctxCancel: cancel,
 		cfg:       cfg,
 		stg:       stg,
+		cacheData: cache.New(time.Minute, time.Minute),
 	}
 
 	err := s.init()

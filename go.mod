@@ -10,6 +10,7 @@ require (
 	github.com/gin-contrib/requestid v1.0.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/okx/go-wallet-sdk/coins/bitcoin v0.0.0-00010101000000-000000000000
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/redis/rueidis v1.0.31
 	github.com/sgostarter/i v0.1.16
 	github.com/sgostarter/libconfig v0.0.2

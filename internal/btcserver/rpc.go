@@ -27,13 +27,29 @@ type Unspent struct {
 
 // nolint: unused
 func (s *BTCServer) listUnspent() (unspent []Unspent, err error) {
-	err = s.rpcClient.CallWrapper("listunspent", []any{nil}, &unspent)
+	err = s.rpcClient.CallWrapper("listunspent", []any{}, &unspent)
+
+	return
+}
+
+func (s *BTCServer) listWallets() (wallets []string, err error) {
+	err = s.rpcClient.CallWrapper("listwallets", []any{}, &wallets)
+
+	return
+}
+
+func (s *BTCServer) getBalance(wallet string) (balance float64, err error) {
+	err = s.rpcClient.CallWalletWrapper(wallet, "getbalance", []any{}, &balance)
 
 	return
 }
 
 func (s *BTCServer) listWalletUnspent(wallet string) (unspent []Unspent, err error) {
-	err = s.rpcClient.CallWalletWrapper(wallet, "listunspent", []any{nil}, &unspent)
+	if wallet != "" {
+		err = s.rpcClient.CallWalletWrapper(wallet, "listunspent", []any{}, &unspent)
+	} else {
+		err = s.rpcClient.CallWalletWrapper("*", "listunspent", []any{}, &unspent)
+	}
 
 	return
 }

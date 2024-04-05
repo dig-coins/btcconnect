@@ -199,8 +199,8 @@ func (s *BTCServer) WalletPayTo(wallet string, outputs []TransOutput, confirmati
 	return
 }
 
-func (s *BTCServer) GetUnsignedTxEx(inputs []TransInput, outputs []TransOutput) (unsignedTxHex string, err error) {
-	unsignedTx := &btctx.UnsignedTx{
+func (s *BTCServer) GetUnsignedTxEx(inputs []TransInput, outputs []TransOutput) (unsignedTx *btctx.UnsignedTx, unsignedTxHex string, err error) {
+	unsignedTx = &btctx.UnsignedTx{
 		Inputs:  make([]btctx.Input, 0, len(inputs)),
 		Outputs: make([]btctx.Output, 0, len(outputs)),
 	}
@@ -249,7 +249,7 @@ func (s *BTCServer) WalletPayToUnsignedTx(wallet string, payAddresses []string, 
 		return
 	}
 
-	unsignedTxHex, err = s.GetUnsignedTxEx(inputs, outputs)
+	_, unsignedTxHex, err = s.GetUnsignedTxEx(inputs, outputs)
 
 	return
 }
@@ -295,7 +295,7 @@ func (s *BTCServer) genUnsignedTx(wallet string, payAddresses []string, outputs 
 		return
 	}
 
-	wpi, err = s.GetUnsignedTxEx(inputs, outputs)
+	_, wpi, err = s.GetUnsignedTxEx(inputs, outputs)
 
 	return
 }

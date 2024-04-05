@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/dig-coins/btcconnect/internal/redistorage"
 	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/dig-coins/btcconnect/internal/utl"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin"
@@ -22,10 +21,9 @@ func TestMain(m *testing.M) {
 }
 
 func utNewBTCServer(t *testing.T) *BTCServer {
-	stg, err := redistorage.NewRedisStorage()
-	assert.Nil(t, err)
-
 	return NewBTCServer(&Config{
+		CoinType:    share.CoinTypeBTCTestnet,
+		Listens:     ":9000",
 		RPCHost:     _uTConfig.GetBTCRpcHost(t),
 		RPCPort:     _uTConfig.GetBTCRpcPort(t),
 		RPCUser:     _uTConfig.GetBTCRpcUser(t),
@@ -42,7 +40,7 @@ func utNewBTCServer(t *testing.T) *BTCServer {
 				MinSignNum: 3,
 			},
 		},
-	}, stg, nil)
+	}, nil, nil)
 }
 
 // nolint
@@ -58,7 +56,7 @@ func TestTrans2(t *testing.T) {
 	s := utNewBTCServer(t)
 
 	wpi, err := s.GenUnsignedTx4TransToOne(_uTConfig.GetWallet(t), "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx",
-		"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 3000, 2, "", true)
+		"tb1q9esscxqfepv26juy6eay4ejf4vsc3dywk9xqqv", 3000, 2, "", true)
 	assert.Nil(t, err)
 	t.Log(wpi)
 }
