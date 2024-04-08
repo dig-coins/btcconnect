@@ -116,7 +116,7 @@ func Test_selectUnspentInputs(t *testing.T) {
 		Address:       "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq",
 	}}
 
-	inputs, outputs, err := s.selectUnspentInputs(unspentList, nil, 100, nil,
+	inputs, outputs, err := s.selectUnspentInputs(unspentList, nil, 100, 0, nil,
 		"mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", true)
 	assert.Nil(t, err)
 	assert.EqualValues(t, 3, len(inputs))
@@ -124,7 +124,7 @@ func Test_selectUnspentInputs(t *testing.T) {
 	assert.EqualValues(t, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", outputs[0].Address)
 	assert.EqualValues(t, 9304, outputs[0].Amount)
 
-	inputs, outputs, err = s.selectUnspentInputs(unspentList, nil, 100, []TransOutput{{
+	inputs, outputs, err = s.selectUnspentInputs(unspentList, nil, 100, 0, []TransOutput{{
 		Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
 		Amount:  100,
 	}}, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", true)
@@ -138,10 +138,11 @@ func Test_selectUnspentInputs(t *testing.T) {
 	assert.EqualValues(t, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", outputs[1].Address)
 	assert.EqualValues(t, 995, outputs[1].Amount)
 
-	inputs, outputs, err = s.selectUnspentInputs(unspentList, nil, 100, []TransOutput{{
-		Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
-		Amount:  100,
-	}}, "", true)
+	inputs, outputs, err = s.selectUnspentInputs(unspentList, nil, 100, 0,
+		[]TransOutput{{
+			Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
+			Amount:  100,
+		}}, "", true)
 	assert.EqualValues(t, 1, len(inputs))
 	assert.EqualValues(t, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", inputs[0].Address)
 
@@ -152,10 +153,11 @@ func Test_selectUnspentInputs(t *testing.T) {
 	assert.EqualValues(t, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", outputs[1].Address)
 	assert.EqualValues(t, 995, outputs[1].Amount)
 
-	inputs, outputs, err = s.selectUnspentInputs(unspentList, []string{"2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq"}, 100, []TransOutput{{
-		Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
-		Amount:  100,
-	}}, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", true)
+	inputs, outputs, err = s.selectUnspentInputs(unspentList, []string{"2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq"},
+		100, 0, []TransOutput{{
+			Address: "2Mu5idgPdH9cSLb2kBUn9ZEB5z6rUdmkLDX",
+			Amount:  100,
+		}}, "bc1q37kc3s6fnwwvn973lff0sy22kznptyc2skx0rw", true)
 	assert.EqualValues(t, 1, len(inputs))
 	assert.EqualValues(t, "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq", inputs[0].Address)
 
@@ -264,7 +266,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("L", 100000, outputs)
 
@@ -275,7 +277,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("L", 100000, outputs)
 
@@ -286,7 +288,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("L", 100000, outputs)
 
@@ -301,7 +303,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("WN", 100000, outputs)
 
@@ -312,7 +314,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("WN", 100000, outputs)
 
@@ -323,7 +325,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "2NC7ACW9obBtsgAgmciLrqJJ36iVcG3Gkgq",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("WN", 100000, outputs)
 
@@ -338,7 +340,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("W", 100000, outputs)
 
@@ -349,7 +351,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("W", 100000, outputs)
 
@@ -360,7 +362,7 @@ func TestStatisticsFee(t *testing.T) {
 			Address: "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4",
 			Amount:  100000,
 		},
-	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("W", 100000, outputs)
 
@@ -375,7 +377,7 @@ func TestStatisticsFee(t *testing.T) {
 			Amount:       100000,
 			RedeemScript: redeemScriptHex,
 		},
-	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000)
+	}, []TransOutput{}, "mojMsSaRFDtF14NnhdNYpRnL1e5CbAzLUU", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("MS", 100000, outputs)
 
@@ -387,7 +389,7 @@ func TestStatisticsFee(t *testing.T) {
 			Amount:       100000,
 			RedeemScript: redeemScriptHex,
 		},
-	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000)
+	}, []TransOutput{}, "tb1qkd8hetlagq3ylg88zupqsu9w6rqykw5mvthhr4", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("MS", 100000, outputs)
 
@@ -399,7 +401,7 @@ func TestStatisticsFee(t *testing.T) {
 			Amount:       100000,
 			RedeemScript: redeemScriptHex,
 		},
-	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000)
+	}, []TransOutput{}, "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i", 1000, 0)
 	assert.Nil(t, err)
 	fnPrintFee("MS", 100000, outputs)
 

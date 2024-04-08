@@ -6,16 +6,17 @@ import (
 )
 
 type Input struct {
-	TxID         string
-	VOut         uint32
-	Address      string
-	Amount       int64
-	RedeemScript string
+	TxID         string `json:"tx_id"`
+	VOut         uint32 `json:"v_out"`
+	Address      string `json:"address"`
+	Amount       int64  `json:"amount"`
+	RedeemScript string `json:"redeem_script"`
 }
 
 type Output struct {
-	Address string
-	Amount  int64
+	Address    string `json:"address"`
+	Amount     int64  `json:"amount"`
+	ChangeFlag bool   `json:"change_flag"`
 }
 
 type UnsignedTx struct {

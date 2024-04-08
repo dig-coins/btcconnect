@@ -14,7 +14,7 @@ require (
 	github.com/redis/rueidis v1.0.31
 	github.com/sgostarter/i v0.1.16
 	github.com/sgostarter/libconfig v0.0.2
-	github.com/sgostarter/libeasygo v0.1.70
+	github.com/sgostarter/libeasygo v0.1.71
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cast v1.6.0
 	github.com/stretchr/testify v1.9.0

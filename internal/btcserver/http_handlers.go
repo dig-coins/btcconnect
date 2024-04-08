@@ -120,6 +120,7 @@ type SimplePayParams struct {
 	Wallets            []string      `json:"wallets,omitempty"`
 	Outputs            []TransOutput `json:"outputs"`
 	ChangeAddress      string        `json:"change_address"`
+	TotalFee           int64         `json:"total_fee"`
 	ConfirmationTarget int           `json:"confirmation_target,omitempty"`
 	FeeSatoshiPerKB    int64         `json:"fee_satoshi_per_kb,omitempty"`
 	MinTransFlag       bool          `json:"min_trans_flag,omitempty"`
@@ -134,7 +135,7 @@ type UnsignedTxResponse struct {
 }
 
 func (resp *UnsignedTxResponse) think() {
-	if resp.UnsignedTx == nil || resp.FeeSatoshiPerKB <= 0 {
+	if resp.UnsignedTx == nil {
 		return
 	}
 
@@ -204,11 +205,16 @@ func (s *BTCServer) doSimplePay(c *gin.Context) (unsignedTx UnsignedTxResponse, 
 		unspents = append(unspents, wUnspents...)
 	}
 
-	unsignedTx.UnsignedTx, unsignedTx.UnsignedTxHex, err = s.genToUnsignedTx(feeSatoshiPerKB, unspents, req.Outputs, req.ChangeAddress, req.MinTransFlag)
+	unsignedTx.UnsignedTx, unsignedTx.UnsignedTxHex, err = s.genToUnsignedTx(feeSatoshiPerKB,
+		req.TotalFee, unspents, req.Outputs, req.ChangeAddress, req.MinTransFlag)
 	if err != nil {
 		msg = err.Error()
 
 		return
+	}
+
+	if req.TotalFee > 0 {
+		unsignedTx.FeeSatoshiPerKB = 0
 	}
 
 	unsignedTx.think()
@@ -232,6 +238,7 @@ type PayParams struct {
 	Outputs []TransOutput `json:"outputs"`
 
 	ChangeAddress      string `json:"change_address"`
+	TotalFee           int64  `json:"total_fee"`
 	ConfirmationTarget int    `json:"confirmation_target,omitempty"`
 	FeeSatoshiPerKB    int64  `json:"fee_satoshi_per_kb,omitempty"`
 	MinTransFlag       bool   `json:"min_trans_flag,omitempty"`
@@ -290,11 +297,16 @@ func (s *BTCServer) doPay(c *gin.Context) (unsignedTx UnsignedTxResponse, code p
 		unspents = append(unspents, wUnspents...)
 	}
 
-	unsignedTx.UnsignedTx, unsignedTx.UnsignedTxHex, err = s.genToUnsignedTx(feeSatoshiPerKB, unspents, req.Outputs, req.ChangeAddress, req.MinTransFlag)
+	unsignedTx.UnsignedTx, unsignedTx.UnsignedTxHex, err = s.genToUnsignedTx(feeSatoshiPerKB, req.TotalFee,
+		unspents, req.Outputs, req.ChangeAddress, req.MinTransFlag)
 	if err != nil {
 		msg = err.Error()
 
 		return
+	}
+
+	if req.TotalFee > 0 {
+		unsignedTx.FeeSatoshiPerKB = 0
 	}
 
 	unsignedTx.think()
@@ -402,9 +414,9 @@ func (s *BTCServer) getUnspent(wallets []string, inputs []PayInput) (walletUnspe
 	return
 }
 
-func (s *BTCServer) genToUnsignedTx(feeSatoshiPerKB int64, unspent []Unspent, rawOutputs []TransOutput,
+func (s *BTCServer) genToUnsignedTx(feeSatoshiPerKB, totalFee int64, unspent []Unspent, rawOutputs []TransOutput,
 	changeAddress string, minTransFlag bool) (unsignedTx *btctx.UnsignedTx, unsignedTxHex string, err error) {
-	inputs, outputs, err := s.selectUnspentInputs(unspent, nil, feeSatoshiPerKB, rawOutputs,
+	inputs, outputs, err := s.selectUnspentInputs(unspent, nil, feeSatoshiPerKB, totalFee, rawOutputs,
 		changeAddress, minTransFlag)
 	if err != nil {
 		return
@@ -500,6 +512,317 @@ func (s *BTCServer) getNetworkFee4CoinExCom(ctx context.Context) (bestTxFee int6
 	}
 
 	bestTxFee = helper.UnitBTC2SatoshiBTC(feeBTC)
+
+	return
+}
+
+func (s *BTCServer) handlerGetUnspentOfGroupWalletAddress(c *gin.Context) {
+	unspent, code, msg := s.getUnspentOfGroupOfWalletAddress(c)
+
+	var resp ptl.ResponseWrapper
+
+	if resp.Apply(code, msg) {
+		resp.Resp = unspent
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+type UnspentVO struct {
+	TxID          string `json:"tx_id"`
+	VOut          uint32 `json:"v_out"`
+	Label         string `json:"label"`
+	Address       string `json:"address"`
+	Confirmations int    `json:"confirmations"`
+	Amount        int64  `json:"amount"`
+}
+
+type AddressUnspentListVO struct {
+	Address   string      `json:"address"`
+	Label     string      `json:"label"`
+	Amount    int64       `json:"amount"`
+	UnspentVO []UnspentVO `json:"unspent"`
+}
+
+type WalletUnspentVO struct {
+	Wallet  string                 `json:"wallet"`
+	Amount  int64                  `json:"amount"`
+	Unspent []AddressUnspentListVO `json:"unspent_list"`
+}
+
+func (s *BTCServer) getUnspentOfGroupOfWalletAddress(c *gin.Context) (
+	unspentListVO []*WalletUnspentVO, code ptl.Code, msg string) {
+	var m map[string]any
+
+	err := c.ShouldBindJSON(&m)
+	if err != nil {
+		code = ptl.CodeErrCommunication
+
+		msg = err.Error()
+
+		return
+	}
+
+	var wallets []string
+
+	if m["wallets"] != nil {
+		wallets, err = cast.ToStringSliceE(m["wallets"])
+		if err != nil {
+			msg = err.Error()
+
+			return
+		}
+	}
+
+	if len(wallets) == 0 {
+		wallets = s.getCacheWallets()
+	}
+
+	if len(wallets) == 0 {
+		msg = "no wallets"
+
+		return
+	}
+
+	var unspents []Unspent
+
+	for _, wallet := range wallets {
+		walletUnspent := &WalletUnspentVO{
+			Wallet: wallet,
+		}
+
+		unspentListVO = append(unspentListVO, walletUnspent)
+
+		unspents, _ = s.listWalletUnspent(wallet)
+
+		addressUnspent := make(map[string]*AddressUnspentListVO)
+
+		for _, unspent := range unspents {
+			if !unspent.Safe {
+				continue
+			}
+
+			u, ok := addressUnspent[unspent.Address]
+			if !ok {
+				u = &AddressUnspentListVO{
+					Address: unspent.Address,
+					Label:   unspent.Label,
+				}
+
+				addressUnspent[unspent.Address] = u
+			}
+
+			u.Amount += helper.UnitBTC2SatoshiBTC(unspent.Amount)
+			u.UnspentVO = append(u.UnspentVO, UnspentVO{
+				TxID:          unspent.TxID,
+				VOut:          unspent.VOut,
+				Label:         unspent.Label,
+				Address:       unspent.Address,
+				Confirmations: unspent.Confirmations,
+				Amount:        helper.UnitBTC2SatoshiBTC(unspent.Amount),
+			})
+		}
+
+		walletUnspent.Unspent = make([]AddressUnspentListVO, 0, len(addressUnspent))
+
+		for _, vo := range addressUnspent {
+			walletUnspent.Amount += vo.Amount
+			walletUnspent.Unspent = append(walletUnspent.Unspent, AddressUnspentListVO{
+				Address:   vo.Address,
+				Label:     vo.Label,
+				Amount:    vo.Amount,
+				UnspentVO: vo.UnspentVO,
+			})
+		}
+	}
+
+	return
+}
+
+func (s *BTCServer) handlerResignedTx(c *gin.Context) {
+	unsignedTx, code, msg := s.doResignedTx(c)
+
+	var resp ptl.ResponseWrapper
+
+	if resp.Apply(code, msg) {
+		resp.Resp = unsignedTx
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+type ResignedTxRequest struct {
+	UnsignedTx         string `json:"unsigned_tx"`
+	TotalFee           int64  `json:"total_fee"`
+	ConfirmationTarget int    `json:"confirmation_target,omitempty"`
+	FeeSatoshiPerKB    int64  `json:"fee_satoshi_per_kb,omitempty"`
+}
+
+func (s *BTCServer) doResignedTx(c *gin.Context) (unsignedTx UnsignedTxResponse, code ptl.Code, msg string) {
+	var req ResignedTxRequest
+
+	err := c.BindJSON(&req)
+	if err != nil {
+		code = ptl.CodeErrInvalidArgs
+
+		msg = err.Error()
+
+		return
+	}
+
+	if req.UnsignedTx == "" {
+		code = ptl.CodeErrInvalidArgs
+
+		msg = "no unsigned tx"
+
+		return
+	}
+
+	tx, err := btctx.UnmarshalUnsignedTx(req.UnsignedTx)
+	if err != nil {
+		code = ptl.CodeErrInvalidArgs
+
+		msg = err.Error()
+
+		return
+	}
+
+	feeSatoshiPerKB, err := s.fixFeeSatoshiPerKB(req.FeeSatoshiPerKB, req.ConfirmationTarget)
+	if err != nil {
+		msg = err.Error()
+
+		return
+	}
+
+	var changeAddress string
+
+	for idx := 0; idx < len(tx.Outputs); idx++ {
+		if tx.Outputs[idx].ChangeFlag {
+			changeAddress = tx.Outputs[idx].Address
+			tx.Outputs = slices.Delete(tx.Outputs, idx, idx+1)
+
+			break
+		}
+	}
+
+	if changeAddress == "" {
+		code = ptl.CodeErrInvalidArgs
+
+		msg = "no change address"
+
+		return
+	}
+
+	var inputs []TransInput
+	for _, input := range tx.Inputs {
+		inputs = append(inputs, TransInput{
+			TxID:         input.TxID,
+			VOut:         input.VOut,
+			PrivateKey:   "",
+			Address:      input.Address,
+			Amount:       input.Amount,
+			RedeemScript: input.RedeemScript,
+		})
+	}
+
+	var outputs []TransOutput
+	for _, output := range tx.Outputs {
+		outputs = append(outputs, TransOutput{
+			Address:    output.Address,
+			Amount:     output.Amount,
+			ChangeFlag: output.ChangeFlag,
+		})
+	}
+
+	changeAmount, err := s.genTransToTxCalcChange(inputs, outputs, changeAddress, feeSatoshiPerKB, req.TotalFee)
+	if err != nil {
+		code = ptl.CodeErrInternal
+
+		msg = err.Error()
+
+		return
+	}
+
+	tx.Outputs = append(tx.Outputs, btctx.Output{
+		Address:    changeAddress,
+		Amount:     changeAmount,
+		ChangeFlag: true,
+	})
+
+	unsignedTx.UnsignedTx = tx
+
+	unsignedTx.UnsignedTxHex, err = btctx.MarshalUnsignedTx(tx)
+	if err != nil {
+		code = ptl.CodeErrInternal
+
+		msg = err.Error()
+
+		return
+	}
+
+	unsignedTx.FeeSatoshiPerKB = feeSatoshiPerKB
+
+	unsignedTx.think()
+
+	return
+}
+
+func (s *BTCServer) handlerLoadUnsignedTx(c *gin.Context) {
+	unsignedTx, code, msg := s.unsignedTxLoad(c)
+
+	var resp ptl.ResponseWrapper
+
+	if resp.Apply(code, msg) {
+		resp.Resp = unsignedTx
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (s *BTCServer) unsignedTxLoad(c *gin.Context) (unsignedTx UnsignedTxResponse, code ptl.Code, msg string) {
+	var m map[string]string
+
+	err := c.BindJSON(&m)
+	if err != nil {
+		code = ptl.CodeErrInvalidArgs
+
+		msg = err.Error()
+
+		return
+	}
+
+	unsignedTxHex := cast.ToString(m["unsigned_tx"])
+	if unsignedTxHex == "" {
+		code = ptl.CodeErrInvalidArgs
+
+		msg = "no unsigned tx"
+
+		return
+	}
+
+	tx, err := btctx.UnmarshalUnsignedTx(unsignedTxHex)
+	if err != nil {
+		code = ptl.CodeErrInvalidArgs
+
+		msg = err.Error()
+
+		return
+	}
+
+	unsignedTx.UnsignedTx = tx
+
+	unsignedTx.UnsignedTxHex, err = btctx.MarshalUnsignedTx(tx)
+	if err != nil {
+		code = ptl.CodeErrInternal
+
+		msg = err.Error()
+
+		return
+	}
+
+	unsignedTx.FeeSatoshiPerKB = 0
+
+	unsignedTx.think()
 
 	return
 }

@@ -25,13 +25,6 @@ type Unspent struct {
 	Desc          string  `json:"desc"`
 }
 
-// nolint: unused
-func (s *BTCServer) listUnspent() (unspent []Unspent, err error) {
-	err = s.rpcClient.CallWrapper("listunspent", []any{}, &unspent)
-
-	return
-}
-
 func (s *BTCServer) listWallets() (wallets []string, err error) {
 	err = s.rpcClient.CallWrapper("listwallets", []any{}, &wallets)
 

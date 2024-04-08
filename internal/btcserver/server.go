@@ -120,6 +120,9 @@ func (s *BTCServer) httpServerRoutine() {
 	r.POST("/pay/simple", s.handlerSimplePay)
 	r.POST("/pay", s.handlerPay)
 	r.GET("/fee", s.handlerGetNetworkFee)
+	r.POST("/unspent/group_wallet_address", s.handlerGetUnspentOfGroupWalletAddress)
+	r.POST("/re-unsigned-tx", s.handlerResignedTx)
+	r.POST("/unsigned-tx/load", s.handlerLoadUnsignedTx)
 
 	fnListen := func(listen string) {
 		srv := &http.Server{

@@ -24,12 +24,13 @@ type TransInput struct {
 }
 
 type TransOutput struct {
-	Address string `json:"address"`
-	Amount  int64  `json:"amount"`
+	Address    string `json:"address"`
+	Amount     int64  `json:"amount"`
+	ChangeFlag bool   `json:"change_flag"`
 }
 
 func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransOutput,
-	changeAddress string, estimateSmartFee int64) (changeAmount int64, err error) {
+	changeAddress string, estimateSmartFee, totalFee int64) (changeAmount int64, err error) {
 	var totalAmount, outputAmount int64
 
 	uncompleted := btctx.NewUncompleted()
@@ -129,8 +130,12 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 
 	size := bitcoin.GetTxVirtualSize2(tx)
 
-	fee := size * estimateSmartFee / 1000
-	changeAmount = totalAmount - outputAmount - fee - 2
+	fee := size*estimateSmartFee/1000 + 3
+	if totalFee > 0 {
+		fee = totalFee
+	}
+
+	changeAmount = totalAmount - outputAmount - fee
 
 	if changeAmount < 0 {
 		err = errors.New("insufficient")
@@ -180,7 +185,7 @@ func (s *BTCServer) WalletPayTo(wallet string, outputs []TransOutput, confirmati
 		return
 	}
 
-	inputs, outputs, err := s.selectUnspentInputs(unspentList, nil, estimateSmartFee,
+	inputs, outputs, err := s.selectUnspentInputs(unspentList, nil, estimateSmartFee, 0,
 		outputs, changeAddress, true)
 	if err != nil {
 		return
@@ -217,8 +222,9 @@ func (s *BTCServer) GetUnsignedTxEx(inputs []TransInput, outputs []TransOutput) 
 
 	for _, output := range outputs {
 		unsignedTx.Outputs = append(unsignedTx.Outputs, btctx.Output{
-			Address: output.Address,
-			Amount:  output.Amount,
+			Address:    output.Address,
+			Amount:     output.Amount,
+			ChangeFlag: output.ChangeFlag,
 		})
 	}
 
@@ -243,7 +249,7 @@ func (s *BTCServer) WalletPayToUnsignedTx(wallet string, payAddresses []string, 
 		return
 	}
 
-	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, rawOutputs,
+	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, 0, rawOutputs,
 		changeAddress, minTransFlag)
 	if err != nil {
 		return
@@ -289,7 +295,7 @@ func (s *BTCServer) genUnsignedTx(wallet string, payAddresses []string, outputs 
 		return
 	}
 
-	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, outputs,
+	inputs, outputs, err := s.selectUnspentInputs(unspentList, payAddresses, estimateSmartFee, 0, outputs,
 		changeAddress, minTransFlag)
 	if err != nil {
 		return
@@ -305,7 +311,7 @@ func (s *BTCServer) genUnsignedTx(wallet string, payAddresses []string, outputs 
 //
 
 func (s *BTCServer) calcChange4Trans(inputs []TransInput, outputs []TransOutput, changeAddress string,
-	estimateSmartFee int64) (newOutput []TransOutput, err error) {
+	estimateSmartFee, totalFee int64) (newOutput []TransOutput, err error) {
 	newOutput = append(newOutput, outputs...)
 
 	newOutput = append(newOutput, TransOutput{
@@ -313,7 +319,7 @@ func (s *BTCServer) calcChange4Trans(inputs []TransInput, outputs []TransOutput,
 		Amount:  0,
 	})
 
-	changeAmount, err := s.genTransToTxCalcChange(inputs, outputs, changeAddress, estimateSmartFee)
+	changeAmount, err := s.genTransToTxCalcChange(inputs, outputs, changeAddress, estimateSmartFee, totalFee)
 	if err != nil {
 		return
 	}
@@ -321,15 +327,16 @@ func (s *BTCServer) calcChange4Trans(inputs []TransInput, outputs []TransOutput,
 	newOutput = newOutput[:len(newOutput)-1]
 
 	newOutput = append(newOutput, TransOutput{
-		Address: changeAddress,
-		Amount:  changeAmount - 1,
+		Address:    changeAddress,
+		Amount:     changeAmount,
+		ChangeFlag: true,
 	})
 
 	return
 }
 
 func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []string,
-	estimateSmartFee int64, rawOutputs []TransOutput, changeAddress string, minTransFlag bool) (
+	estimateSmartFee, totalFee int64, rawOutputs []TransOutput, changeAddress string, minTransFlag bool) (
 	inputs []TransInput, outputs []TransOutput, err error) {
 	if changeAddress == "" {
 		if len(payAddresses) == 1 && len(rawOutputs) > 0 {
@@ -396,7 +403,7 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 			continue
 		}
 
-		outputs, err = s.calcChange4Trans(inputs, rawOutputs, changeAddress, estimateSmartFee)
+		outputs, err = s.calcChange4Trans(inputs, rawOutputs, changeAddress, estimateSmartFee, totalFee)
 		if err == nil {
 			success = true
 
@@ -424,7 +431,7 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 		return
 	}
 
-	outputs, err = s.calcChange4Trans(inputs, rawOutputs, changeAddress, estimateSmartFee)
+	outputs, err = s.calcChange4Trans(inputs, rawOutputs, changeAddress, estimateSmartFee, totalFee)
 
 	return
 }
