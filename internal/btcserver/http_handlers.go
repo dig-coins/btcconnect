@@ -132,6 +132,7 @@ type UnsignedTxResponse struct {
 	WalletUnspent   map[string][]Unspent `json:"wallet_unspent"`
 	FeeSatoshiPerKB int64                `json:"fee_satoshi_per_kb"`
 	Fee             int64                `json:"fee"`
+	CommandJson     string               `json:"command_json"`
 }
 
 func (resp *UnsignedTxResponse) think() {
@@ -150,6 +151,10 @@ func (resp *UnsignedTxResponse) think() {
 	}
 
 	resp.Fee = totalAmount - outAmount
+	resp.CommandJson, _ = share.MarshalCommandToJSON(share.Command{
+		CommandType: share.CommandTypeGenTx,
+		Input:       resp.UnsignedTxHex,
+	})
 }
 
 func (s *BTCServer) handlerSimplePay(c *gin.Context) {

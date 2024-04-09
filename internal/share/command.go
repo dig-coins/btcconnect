@@ -65,3 +65,20 @@ func MarshalCommand(command Command) (s string, err error) {
 
 	return
 }
+
+func MarshalCommandToJSON(command Command) (s string, err error) {
+	if !command.Valid() {
+		err = commerr.ErrInvalidArgument
+
+		return
+	}
+
+	d, err := json.Marshal(&command)
+	if err != nil {
+		return
+	}
+
+	s = string(d)
+
+	return
+}
