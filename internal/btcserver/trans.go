@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/btcsuite/btcd/wire"
-	"github.com/dig-coins/btcconnect/internal/btctx"
+	"github.com/dig-coins/btcconnect/pkg/btctx"
 	"github.com/dig-coins/btcconnect/pkg/helper"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin"
 	"github.com/sgostarter/i/commerr"

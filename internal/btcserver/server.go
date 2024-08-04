@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dig-coins/btcconnect/internal/share"
+	"github.com/dig-coins/btcconnect/pkg/share"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -56,35 +56,7 @@ func (s *BTCServer) httpServerRoutine() {
 		c.String(http.StatusOK, "Hello")
 	})
 
-	r.POST("/tx/signed/broadcast", func(c *gin.Context) {
-		var m map[string]string
-
-		err := c.BindJSON(&m)
-		if err != nil {
-			c.String(http.StatusInternalServerError, err.Error())
-
-			return
-		}
-
-		tx := m["tx"]
-
-		if tx == "" {
-			c.String(http.StatusBadRequest, "no tx")
-
-			return
-		}
-
-		txID, err := s.SendRawTransaction(tx)
-		if err != nil {
-			c.String(http.StatusInternalServerError, err.Error())
-
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"tx_id": txID,
-		})
-	})
+	r.POST("/tx/signed/broadcast", s.handleTxBroadcast)
 
 	r.POST("/tx/unsigned/new", func(c *gin.Context) {
 		var n UnsignedTxNew

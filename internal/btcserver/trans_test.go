@@ -3,10 +3,10 @@ package btcserver
 
 import (
 	"encoding/hex"
+	share2 "github.com/dig-coins/btcconnect/pkg/share"
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/dig-coins/btcconnect/internal/utl"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin"
 	"github.com/stretchr/testify/assert"
@@ -22,14 +22,14 @@ func TestMain(m *testing.M) {
 
 func utNewBTCServer(t *testing.T) *BTCServer {
 	return NewBTCServer(&Config{
-		CoinType:    share.CoinTypeBTCTestnet,
+		CoinType:    share2.CoinTypeBTCTestnet,
 		Listens:     ":9000",
 		RPCHost:     _uTConfig.GetBTCRpcHost(t),
 		RPCPort:     _uTConfig.GetBTCRpcPort(t),
 		RPCUser:     _uTConfig.GetBTCRpcUser(t),
 		RPCPassword: _uTConfig.GetBTCRpcPassword(t),
 		RPCUseSSL:   _uTConfig.GetBTCRpcUseTLS(t),
-		MultiSignAddressInfos: map[string]*share.MultiSignAddressInfo{
+		MultiSignAddressInfos: map[string]*share2.MultiSignAddressInfo{
 			"2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i": {
 				PublicKeys: []string{
 					"02f410e07213396b8d6289ca6f1c217380a2787db5a7487b0978bd792cbd32343e",
@@ -79,7 +79,7 @@ func TestTrans4(t *testing.T) {
 	}, []TransOutput{
 		{
 			Address: "2N59MZ6kPV1qWvahhUzDzZGXo4ZsjAmF14i",
-			Amount:  70000,
+			Amount:  100,
 		},
 	}, 2, "mws4UFRP8XE8JhweXhgyMGkVPZfCMSFgmx", true)
 	assert.Nil(t, err)

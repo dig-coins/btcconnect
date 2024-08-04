@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dig-coins/btcconnect/internal/btctx"
-	"github.com/dig-coins/btcconnect/internal/share"
+	"github.com/dig-coins/btcconnect/pkg/btctx"
 	"github.com/dig-coins/btcconnect/pkg/helper"
+	"github.com/dig-coins/btcconnect/pkg/share"
 	"github.com/gin-gonic/gin"
 	"github.com/sgostarter/libeasygo/ptl"
 	"github.com/spf13/cast"
@@ -132,7 +132,7 @@ type UnsignedTxResponse struct {
 	WalletUnspent   map[string][]Unspent `json:"wallet_unspent"`
 	FeeSatoshiPerKB int64                `json:"fee_satoshi_per_kb"`
 	Fee             int64                `json:"fee"`
-	CommandJson     string               `json:"command_json"`
+	CommandJSON     string               `json:"command_json"`
 }
 
 func (resp *UnsignedTxResponse) think() {
@@ -151,7 +151,7 @@ func (resp *UnsignedTxResponse) think() {
 	}
 
 	resp.Fee = totalAmount - outAmount
-	resp.CommandJson, _ = share.MarshalCommandToJSON(share.Command{
+	resp.CommandJSON, _ = share.MarshalCommandToJSON(share.Command{
 		CommandType: share.CommandTypeGenTx,
 		Input:       resp.UnsignedTxHex,
 	})
@@ -828,6 +828,51 @@ func (s *BTCServer) unsignedTxLoad(c *gin.Context) (unsignedTx UnsignedTxRespons
 	unsignedTx.FeeSatoshiPerKB = 0
 
 	unsignedTx.think()
+
+	return
+}
+
+func (s *BTCServer) handleTxBroadcast(c *gin.Context) {
+	txID, code, msg := s.handleTxBroadcastInner(c)
+
+	var resp ptl.ResponseWrapper
+
+	if resp.Apply(code, msg) {
+		resp.Resp = txID
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (s *BTCServer) handleTxBroadcastInner(c *gin.Context) (txID string, code ptl.Code, msg string) {
+	var m map[string]any
+
+	err := c.BindJSON(&m)
+	if err != nil {
+		code = ptl.CodeErrCommunication
+		msg = err.Error()
+
+		return
+	}
+
+	tx := cast.ToString(m["tx"])
+
+	if tx == "" {
+		code = ptl.CodeErrInvalidArgs
+		msg = "no tx"
+
+		return
+	}
+
+	txID, err = s.SendRawTransaction(tx)
+	if err != nil {
+		code = ptl.CodeErrInternal
+		msg = err.Error()
+
+		return
+	}
+
+	code = ptl.CodeSuccess
 
 	return
 }

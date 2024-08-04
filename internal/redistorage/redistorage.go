@@ -68,7 +68,7 @@ func (impl *rStorage) doRedisCommandDedicated(proc RedisCommandProc) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	_ = impl.rClient.Dedicated(func(client rueidis.DedicatedClient) error {
+	_ = impl.rClient.Dedicated(func(_ rueidis.DedicatedClient) error {
 		proc(ctx, impl.rClient)
 
 		return nil

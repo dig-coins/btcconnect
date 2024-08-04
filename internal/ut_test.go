@@ -3,12 +3,12 @@ package internal
 
 import (
 	"encoding/json"
+	"github.com/dig-coins/btcconnect/pkg/btctx"
+	share2 "github.com/dig-coins/btcconnect/pkg/share"
 	"os"
 	"testing"
 
 	"github.com/dig-coins/btcconnect/internal/btcserver"
-	"github.com/dig-coins/btcconnect/internal/btctx"
-	"github.com/dig-coins/btcconnect/internal/share"
 	"github.com/dig-coins/btcconnect/internal/utl"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,7 +30,7 @@ func TestBroadcastTx(t *testing.T) {
 
 func utNewBTCServer(t *testing.T) *btcserver.BTCServer {
 	return btcserver.NewBTCServer(&btcserver.Config{
-		CoinType:              share.CoinTypeBTC,
+		CoinType:              share2.CoinTypeBTC,
 		Listens:               ":9001",
 		RPCHost:               _uTConfig.GetBTCRpcHost(t),
 		RPCPort:               _uTConfig.GetBTCRpcPort(t),
@@ -67,8 +67,8 @@ func TestTrans3(t *testing.T) {
 }
 
 func utSaveUnsignedTxToFile(t *testing.T, unsignedTx string) {
-	d, err := json.Marshal(share.Command{
-		CommandType: share.CommandTypeGenTx,
+	d, err := json.Marshal(share2.Command{
+		CommandType: share2.CommandTypeGenTx,
 		Input:       unsignedTx,
 	})
 	assert.Nil(t, err)
