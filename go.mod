@@ -83,4 +83,5 @@ require (
 
 //replace github.com/sgostarter/libconfig => ../../work_sgostarter/libconfig
 
-replace github.com/okx/go-wallet-sdk/coins/bitcoin => ../../work_dig-coins/go-wallet-sdk/coins/bitcoin
+//replace github.com/okx/go-wallet-sdk/coins/bitcoin => ../../work_dig-coins/go-wallet-sdk/coins/bitcoin
+replace github.com/okx/go-wallet-sdk/coins/bitcoin => github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.3

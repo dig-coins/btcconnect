@@ -74,6 +74,8 @@ github.com/decred/dcrd/crypto/blake256 v1.0.0/go.mod h1:sQl2p6Y26YV+ZOcSTP6thNdn
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 h1:YLtO71vCjJRCBcrPMtQ9nqBsqpA1m5sE92cU+pd5Mcc=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1/go.mod h1:hyedUtir6IdtD/7lIxGeCxkaw7y45JueMRL4DIyJDKs=
 github.com/decred/dcrd/lru v1.0.0/go.mod h1:mxKOwFd7lFjN2GZYsiz/ecgqR6kkYAl+0pz0tEMk218=
+github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.3 h1:W2QcT5OY4kl9iWxvm33uRR1L1xGm1QCUP84a9fHTUyQ=
+github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.3/go.mod h1:P/HXvAJttNuDewGNBc5LwM7WYG+S8sYvZX6ccr8i6gk=
 github.com/dig-coins/hd-wallet v0.0.0-20240312121459-3253c499232c h1:G6FgNqJir9ZfdUpCC+cpG2bzEcTnmJW3DBD/Gnyzg0k=
 github.com/dig-coins/hd-wallet v0.0.0-20240312121459-3253c499232c/go.mod h1:Os5UuZsXdNqLtNYZB2+6tg3+Y3uLcTMAv257MIOch/w=
 github.com/ethereum/c-kzg-4844 v0.3.1 h1:sR65+68+WdnMKxseNWxSJuAv2tsUrihTpVBTfM/U5Zg=
