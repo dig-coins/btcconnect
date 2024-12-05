@@ -2,7 +2,7 @@ package share
 
 import (
 	"github.com/btcsuite/btcd/chaincfg"
-	hdwallet "github.com/dig-coins/hd-wallet"
+	hdwallet "github.com/dig-coins/hd-wallets"
 )
 
 type CoinType int
@@ -11,10 +11,13 @@ const (
 	CoinTypeStart      CoinType = 1
 	CoinTypeBTCTestnet          = iota
 	CoinTypeBTC
+	CoinTypeBTCRegtest
 )
 
 func GetBTCNetParams(coinType CoinType) *chaincfg.Params {
 	switch coinType {
+	case CoinTypeBTCRegtest:
+		return &chaincfg.RegressionNetParams
 	case CoinTypeBTCTestnet:
 		return &chaincfg.TestNet3Params
 	case CoinTypeBTC:
@@ -26,6 +29,8 @@ func GetBTCNetParams(coinType CoinType) *chaincfg.Params {
 
 func GetHDWalletCoinType(coinType CoinType) uint32 {
 	switch coinType {
+	case CoinTypeBTCRegtest:
+		return hdwallet.BTCRegTest
 	case CoinTypeBTCTestnet:
 		return hdwallet.BTCTestnet
 	case CoinTypeBTC:

@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/0xb10c/rawtx v1.5.0
 	github.com/btcsuite/btcd v0.24.0
-	github.com/dig-coins/hd-wallet v0.0.0-20240312121459-3253c499232c
+	github.com/dig-coins/hd-wallets v0.0.3
 	github.com/gin-contrib/gzip v1.0.0
 	github.com/gin-contrib/requestid v1.0.0
 	github.com/gin-gonic/gin v1.9.1
@@ -77,11 +77,12 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-//replace github.com/okx/go-wallet-sdk/coins/bitcoin => github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.0-20240326121340-9543ab2b2240
-
 //replace github.com/sgostarter/libeasygo => ../../work_sgostarter/libeasygo
 
 //replace github.com/sgostarter/libconfig => ../../work_sgostarter/libconfig
 
-//replace github.com/okx/go-wallet-sdk/coins/bitcoin => ../../work_dig-coins/go-wallet-sdk/coins/bitcoin
-replace github.com/okx/go-wallet-sdk/coins/bitcoin => github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.3
+replace github.com/okx/go-wallet-sdk/coins/bitcoin => github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.4
+
+//replace github.com/okx/go-wallet-sdk/coins/bitcoin => ../go-wallet-sdk/coins/bitcoin
+
+//replace github.com/dig-coins/hd-wallets => ../hd-wallets

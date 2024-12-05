@@ -17,6 +17,7 @@ type Output struct {
 	Address    string `json:"address"`
 	Amount     int64  `json:"amount"`
 	ChangeFlag bool   `json:"change_flag"`
+	Comment    string `json:"comment,omitempty"`
 }
 
 type UnsignedTx struct {

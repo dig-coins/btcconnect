@@ -74,10 +74,10 @@ github.com/decred/dcrd/crypto/blake256 v1.0.0/go.mod h1:sQl2p6Y26YV+ZOcSTP6thNdn
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 h1:YLtO71vCjJRCBcrPMtQ9nqBsqpA1m5sE92cU+pd5Mcc=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1/go.mod h1:hyedUtir6IdtD/7lIxGeCxkaw7y45JueMRL4DIyJDKs=
 github.com/decred/dcrd/lru v1.0.0/go.mod h1:mxKOwFd7lFjN2GZYsiz/ecgqR6kkYAl+0pz0tEMk218=
-github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.3 h1:W2QcT5OY4kl9iWxvm33uRR1L1xGm1QCUP84a9fHTUyQ=
-github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.3/go.mod h1:P/HXvAJttNuDewGNBc5LwM7WYG+S8sYvZX6ccr8i6gk=
-github.com/dig-coins/hd-wallet v0.0.0-20240312121459-3253c499232c h1:G6FgNqJir9ZfdUpCC+cpG2bzEcTnmJW3DBD/Gnyzg0k=
-github.com/dig-coins/hd-wallet v0.0.0-20240312121459-3253c499232c/go.mod h1:Os5UuZsXdNqLtNYZB2+6tg3+Y3uLcTMAv257MIOch/w=
+github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.4 h1:7WROpfK4jTNCYgwIfoShiAOoFdKIuhA1JILjS7aQ4S4=
+github.com/dig-coins/go-wallet-sdk/coins/bitcoin v0.0.4/go.mod h1:P/HXvAJttNuDewGNBc5LwM7WYG+S8sYvZX6ccr8i6gk=
+github.com/dig-coins/hd-wallets v0.0.3 h1:zxQTNcBlOTF2tUygLJ5rPnWXAXNaAtuLcqf8lf2FiaI=
+github.com/dig-coins/hd-wallets v0.0.3/go.mod h1:7ErZtUZP1b1kWwO9G3lwuEExmf+9r/nAQwWMM5uU19I=
 github.com/ethereum/c-kzg-4844 v0.3.1 h1:sR65+68+WdnMKxseNWxSJuAv2tsUrihTpVBTfM/U5Zg=
 github.com/ethereum/c-kzg-4844 v0.3.1/go.mod h1:VewdlzQmpT5QSrVhbBuGoCdFJkpaJlO1aQputP83wc0=
 github.com/ethereum/go-ethereum v1.13.4 h1:25HJnaWVg3q1O7Z62LaaI6S9wVq8QCw3K88g8wEzrcM=
@@ -130,6 +130,7 @@ github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/holiman/uint256 v1.2.3 h1:K8UWO1HUJpRMXBxbmaY1Y8IAMZC/RsKB+ArEnnK4l5o=
 github.com/holiman/uint256 v1.2.3/go.mod h1:SC8Ryt4n+UBbPbIBKaG9zbbDlp4jOru9xFZmPzLUTxw=
+github.com/howeyc/gopass v0.0.0-20210920133722-c8aef6fb66ef/go.mod h1:lADxMC39cJJqL93Duh1xhAs4I2Zs8mKS89XWXFGp9cs=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

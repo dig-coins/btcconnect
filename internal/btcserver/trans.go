@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/dig-coins/btcconnect/pkg/btctx"
 	"github.com/dig-coins/btcconnect/pkg/helper"
@@ -27,6 +28,7 @@ type TransOutput struct {
 	Address    string `json:"address"`
 	Amount     int64  `json:"amount"`
 	ChangeFlag bool   `json:"change_flag"`
+	Comment    string `json:"comment,omitempty"`
 }
 
 func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransOutput,
@@ -73,6 +75,7 @@ func (s *BTCServer) genTransToTxCalcChange(inputs []TransInput, outputs []TransO
 		oOutputs = append(oOutputs, btctx.Output{
 			Address: output.Address,
 			Amount:  output.Amount,
+			Comment: output.Comment,
 		})
 
 		outputAmount += output.Amount
@@ -154,7 +157,18 @@ func (s *BTCServer) genTransToTx(inputs []TransInput, outputs []TransOutput) (tx
 	}
 
 	for _, output := range outputs {
-		txBuild.AddOutput(output.Address, output.Amount)
+		if output.Comment != "" {
+			var pkScript []byte
+
+			pkScript, err = txscript.NullDataScript([]byte(output.Comment))
+			if err != nil {
+				return
+			}
+
+			txBuild.AppendTransparentOutput(wire.NewTxOut(int64(0), pkScript))
+		} else {
+			txBuild.AddOutput(output.Address, output.Amount)
+		}
 	}
 
 	tx, err := txBuild.Build()
@@ -225,6 +239,7 @@ func (s *BTCServer) GetUnsignedTxEx(inputs []TransInput, outputs []TransOutput) 
 			Address:    output.Address,
 			Amount:     output.Amount,
 			ChangeFlag: output.ChangeFlag,
+			Comment:    output.Comment,
 		})
 	}
 
@@ -347,6 +362,10 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 	var outputAmount int64
 
 	for idx, output := range rawOutputs {
+		if output.Comment != "" {
+			continue
+		}
+
 		if output.Amount <= 0 {
 			err = cuserror.NewWithErrorMsg(fmt.Sprintf("invalid amount on input %d", idx))
 
@@ -399,7 +418,7 @@ func (s *BTCServer) selectUnspentInputs(unspentList []Unspent, payAddresses []st
 			changeAddress = unspent.Address
 		}
 
-		if outputAmount == 0 || !minTransFlag || totalAmount <= outputAmount {
+		if !minTransFlag || totalAmount <= outputAmount {
 			continue
 		}
 

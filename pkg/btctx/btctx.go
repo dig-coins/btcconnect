@@ -2,6 +2,7 @@ package btctx
 
 import (
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin"
 	"github.com/sgostarter/i/commerr"
@@ -21,7 +22,18 @@ func GenSignedTx(unsignedTx *UnsignedTx, netParams *chaincfg.Params) (tx *wire.M
 	}
 
 	for _, output := range unsignedTx.Outputs {
-		txBuild.AddOutput(output.Address, output.Amount)
+		if output.Comment != "" {
+			var pkScript []byte
+
+			pkScript, err = txscript.NullDataScript([]byte(output.Comment))
+			if err != nil {
+				return
+			}
+
+			txBuild.AppendTransparentOutput(wire.NewTxOut(int64(0), pkScript))
+		} else {
+			txBuild.AddOutput(output.Address, output.Amount)
+		}
 	}
 
 	tx, err = txBuild.Build2()
@@ -48,7 +60,18 @@ func GenMultiSignedTx(unsignedTx *UnsignedTx, uncompleted *Uncompleted,
 	}
 
 	for _, output := range unsignedTx.Outputs {
-		txBuild.AddOutput(output.Address, output.Amount)
+		if output.Comment != "" {
+			var pkScript []byte
+
+			pkScript, err = txscript.NullDataScript([]byte(output.Comment))
+			if err != nil {
+				return
+			}
+
+			txBuild.AppendTransparentOutput(wire.NewTxOut(int64(0), pkScript))
+		} else {
+			txBuild.AddOutput(output.Address, output.Amount)
+		}
 	}
 
 	hexTx, err := txBuild.SingleBuild2()

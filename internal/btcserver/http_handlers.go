@@ -196,14 +196,18 @@ func (s *BTCServer) doSimplePay(c *gin.Context) (unsignedTx UnsignedTxResponse, 
 		return
 	}
 
-	feeSatoshiPerKB, err := s.fixFeeSatoshiPerKB(req.FeeSatoshiPerKB, req.ConfirmationTarget)
-	if err != nil {
-		msg = err.Error()
+	var feeSatoshiPerKB int64
 
-		return
+	if req.TotalFee <= 0 {
+		feeSatoshiPerKB, err = s.fixFeeSatoshiPerKB(req.FeeSatoshiPerKB, req.ConfirmationTarget)
+		if err != nil {
+			msg = err.Error()
+
+			return
+		}
+
+		unsignedTx.FeeSatoshiPerKB = feeSatoshiPerKB
 	}
-
-	unsignedTx.FeeSatoshiPerKB = feeSatoshiPerKB
 
 	unspents := make([]Unspent, 0, 10)
 	for _, wUnspents := range unsignedTx.WalletUnspent {
@@ -736,6 +740,7 @@ func (s *BTCServer) doResignedTx(c *gin.Context) (unsignedTx UnsignedTxResponse,
 			Address:    output.Address,
 			Amount:     output.Amount,
 			ChangeFlag: output.ChangeFlag,
+			Comment:    output.Comment,
 		})
 	}
 
